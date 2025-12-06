@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>编程格斗 - 火柴人布娃娃物理格斗游戏</title>
+    <title>殴打CCF</title>
     <!-- Tailwind CSS v3 -->
     <script src="https://cdn.tailwindcss.com"></script>
     <!-- Font Awesome -->
@@ -470,17 +470,17 @@
                 energy: 100,
                 x: 200,
                 y: 450,
-                width: 80,
-                height: 150,
+                width: 120,
+                height: 180,
                 speed: 5,
                 direction: 'right',
                 ragdoll: {
-                    head: { x: 0, y: -70, radius: 20, angle: 0, angularVelocity: 0, isDragging: false },
-                    torso: { x: 0, y: -20, width: 30, height: 60, angle: 0, angularVelocity: 0, isDragging: false },
-                    leftArm: { x: -25, y: -10, length: 50, angle: -30 * Math.PI / 180, angularVelocity: 0, joint: { x: -15, y: -10 }, isDragging: false },
-                    rightArm: { x: 25, y: -10, length: 50, angle: 30 * Math.PI / 180, angularVelocity: 0, joint: { x: 15, y: -10 }, isDragging: false },
-                    leftLeg: { x: -10, y: 30, length: 70, angle: 15 * Math.PI / 180, angularVelocity: 0, joint: { x: -10, y: 20 }, isDragging: false },
-                    rightLeg: { x: 10, y: 30, length: 70, angle: -15 * Math.PI / 180, angularVelocity: 0, joint: { x: 10, y: 20 }, isDragging: false }
+                    head: { x: 0, y: -80, radius: 25, angle: 0, angularVelocity: 0, isDragging: false },
+                    torso: { x: 0, y: -20, width: 50, height: 70, angle: 0, angularVelocity: 0, isDragging: false },
+                    leftArm: { x: -35, y: -10, length: 60, angle: -30 * Math.PI / 180, angularVelocity: 0, joint: { x: -25, y: -10 }, isDragging: false },
+                    rightArm: { x: 35, y: -10, length: 60, angle: 30 * Math.PI / 180, angularVelocity: 0, joint: { x: 25, y: -10 }, isDragging: false },
+                    leftLeg: { x: -15, y: 35, length: 80, angle: 15 * Math.PI / 180, angularVelocity: 0, joint: { x: -15, y: 25 }, isDragging: false },
+                    rightLeg: { x: 15, y: 35, length: 80, angle: -15 * Math.PI / 180, angularVelocity: 0, joint: { x: 15, y: 25 }, isDragging: false }
                 },
                 currentWeapon: 'fist',
                 weapons: {
@@ -498,17 +498,17 @@
                 health: 100,
                 x: 600,
                 y: 450,
-                width: 80,
-                height: 150,
+                width: 120,
+                height: 180,
                 speed: 3,
                 direction: 'left',
                 ragdoll: {
-                    head: { x: 0, y: -70, radius: 20, angle: 0, angularVelocity: 0 },
-                    torso: { x: 0, y: -20, width: 30, height: 60, angle: 0, angularVelocity: 0 },
-                    leftArm: { x: -25, y: -10, length: 50, angle: -30 * Math.PI / 180, angularVelocity: 0, joint: { x: -15, y: -10 } },
-                    rightArm: { x: 25, y: -10, length: 50, angle: 30 * Math.PI / 180, angularVelocity: 0, joint: { x: 15, y: -10 } },
-                    leftLeg: { x: -10, y: 30, length: 70, angle: 15 * Math.PI / 180, angularVelocity: 0, joint: { x: -10, y: 20 } },
-                    rightLeg: { x: 10, y: 30, length: 70, angle: -15 * Math.PI / 180, angularVelocity: 0, joint: { x: 10, y: 20 } }
+                    head: { x: 0, y: -80, radius: 25, angle: 0, angularVelocity: 0 },
+                    torso: { x: 0, y: -20, width: 50, height: 70, angle: 0, angularVelocity: 0 },
+                    leftArm: { x: -35, y: -10, length: 60, angle: -30 * Math.PI / 180, angularVelocity: 0, joint: { x: -25, y: -10 } },
+                    rightArm: { x: 35, y: -10, length: 60, angle: 30 * Math.PI / 180, angularVelocity: 0, joint: { x: 25, y: -10 } },
+                    leftLeg: { x: -15, y: 35, length: 80, angle: 15 * Math.PI / 180, angularVelocity: 0, joint: { x: -15, y: 25 } },
+                    rightLeg: { x: 15, y: 35, length: 80, angle: -15 * Math.PI / 180, angularVelocity: 0, joint: { x: 15, y: 25 } }
                 },
                 difficulty: 1,
                 actionCooldown: 0,
