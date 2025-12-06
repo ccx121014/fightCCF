@@ -1,0 +1,1716 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>编程格斗 - 火柴人布娃娃物理格斗游戏</title>
+    <!-- Tailwind CSS v3 -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Font Awesome -->
+    <link href="https://cdn.jsdelivr.net/npm/font-awesome@4.7.0/css/font-awesome.min.css" rel="stylesheet">
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        primary: '#3B82F6',
+                        secondary: '#10B981',
+                        accent: '#8B5CF6',
+                        dark: '#1F2937',
+                        light: '#F3F4F6',
+                        danger: '#EF4444',
+                        warning: '#F59E0B',
+                        info: '#3B82F6',
+                        success: '#10B981'
+                    },
+                    fontFamily: {
+                        sans: ['Inter', 'system-ui', 'sans-serif'],
+                        mono: ['JetBrains Mono', 'monospace']
+                    },
+                    animation: {
+                        'float': 'float 3s ease-in-out infinite',
+                        'pulse-fast': 'pulse 1s cubic-bezier(0.4, 0, 0.6, 1) infinite',
+                        'glow': 'glow 2s ease-in-out infinite alternate'
+                    },
+                    keyframes: {
+                        float: {
+                            '0%, 100%': { transform: 'translateY(0)' },
+                            '50%': { transform: 'translateY(-10px)' }
+                        },
+                        glow: {
+                            '0%': { textShadow: '0 0 5px #fff, 0 0 10px #fff, 0 0 15px #0073e6, 0 0 20px #0073e6' },
+                            '100%': { textShadow: '0 0 10px #fff, 0 0 20px #fff, 0 0 30px #0073e6, 0 0 40px #0073e6' }
+                        }
+                    }
+                }
+            }
+        }
+    </script>
+    <style type="text/tailwindcss">
+        @layer utilities {
+            .text-glow {
+                text-shadow: 0 0 5px #fff, 0 0 10px #fff, 0 0 15px #0073e6, 0 0 20px #0073e6;
+            }
+            .text-glow-green {
+                text-shadow: 0 0 5px #fff, 0 0 10px #fff, 0 0 15px #00e673, 0 0 20px #00e673;
+            }
+            .text-glow-red {
+                text-shadow: 0 0 5px #fff, 0 0 10px #fff, 0 0 15px #e60000, 0 0 20px #e60000;
+            }
+            .btn-primary {
+                @apply bg-primary hover:bg-blue-600 text-white font-bold py-2 px-4 rounded-lg transition-all duration-300;
+            }
+            .btn-secondary {
+                @apply bg-secondary hover:bg-green-600 text-white font-bold py-2 px-4 rounded-lg transition-all duration-300;
+            }
+            .btn-danger {
+                @apply bg-danger hover:bg-red-600 text-white font-bold py-2 px-4 rounded-lg transition-all duration-300;
+            }
+            .btn-hover:hover {
+                @apply transform scale-105 shadow-lg;
+            }
+            .menu {
+                @apply absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 bg-dark bg-opacity-90 p-8 rounded-xl shadow-2xl border border-gray-700;
+            }
+            .glass {
+                @apply bg-white bg-opacity-10 backdrop-filter backdrop-blur-lg rounded-lg border border-white border-opacity-20;
+            }
+            .pixel-border {
+                @apply border-4 border-white border-opacity-80 rounded-lg shadow-[0_0_0_2px_rgba(0,0,0,0.8)];
+            }
+        }
+    </style>
+    <style>
+        body {
+            margin: 0;
+            padding: 0;
+            overflow: hidden;
+            background-color: #000;
+            font-family: 'Inter', system-ui, sans-serif;
+        }
+        canvas {
+            display: block;
+            background-color: #000;
+        }
+        .game-container {
+            position: relative;
+            width: 100vw;
+            height: 100vh;
+        }
+        .hud {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            padding: 20px;
+            pointer-events: none;
+            z-index: 10;
+        }
+        .health-bar, .energy-bar {
+            height: 20px;
+            border-radius: 10px;
+            overflow: hidden;
+            margin-bottom: 10px;
+            background-color: rgba(0, 0, 0, 0.5);
+        }
+        .health-fill {
+            height: 100%;
+            background: linear-gradient(90deg, #ff0000, #ff6666);
+            transition: width 0.3s ease;
+        }
+        .energy-fill {
+            height: 100%;
+            background: linear-gradient(90deg, #0066ff, #66a3ff);
+            transition: width 0.3s ease;
+        }
+        .slow-motion-indicator {
+            position: absolute;
+            top: 20px;
+            right: 20px;
+            color: #fff;
+            font-size: 18px;
+            font-weight: bold;
+            text-shadow: 0 0 10px #0066ff;
+            opacity: 0;
+            transition: opacity 0.3s ease;
+        }
+        .slow-motion-active {
+            opacity: 1;
+        }
+        .control-hint {
+            position: absolute;
+            bottom: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            color: #fff;
+            font-size: 14px;
+            text-align: center;
+            background-color: rgba(0, 0, 0, 0.7);
+            padding: 10px 20px;
+            border-radius: 20px;
+            pointer-events: none;
+        }
+        .weapon-indicator {
+            position: absolute;
+            bottom: 80px;
+            left: 50%;
+            transform: translateX(-50%);
+            color: #fff;
+            font-size: 16px;
+            font-weight: bold;
+            background-color: rgba(0, 0, 0, 0.7);
+            padding: 8px 16px;
+            border-radius: 20px;
+            pointer-events: none;
+        }
+        .level-info {
+            position: absolute;
+            top: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            color: #fff;
+            font-size: 24px;
+            font-weight: bold;
+            text-shadow: 0 0 10px #0066ff;
+            pointer-events: none;
+        }
+        .enemy-info {
+            position: absolute;
+            top: 60px;
+            left: 50%;
+            
+        /* 错误信息样式 */
+        .error-message {
+            background-color: rgba(0, 0, 0, 0.95);
+            color: #ff4444;
+            padding: 30px;
+            border: 2px solid #ff4444;
+            border-radius: 10px;
+            text-align: center;
+            max-width: 400px;
+            box-shadow: 0 0 30px rgba(255, 68, 68, 0.5);
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            z-index: 100;
+        }
+        
+        .error-message h2 {
+            font-size: 32px;
+            margin-bottom: 20px;
+            text-shadow: 0 0 10px #ff4444;
+        }
+        
+        .error-message p {
+            font-size: 18px;
+            margin-bottom: 20px;
+        }
+        
+        .error-message button {
+            background-color: #660000;
+            color: #ff4444;
+            border: 2px solid #ff4444;
+            padding: 10px 20px;
+            font-size: 16px;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+        
+        .error-message button:hover {
+            background-color: #ff4444;
+            color: #000;
+            box-shadow: 0 0 20px #ff4444;
+        }
+            transform: translateX(-50%);
+            color: #fff;
+            font-size: 18px;
+            text-shadow: 0 0 5px #ff0000;
+            pointer-events: none;
+        }
+        .fade-in {
+            animation: fadeIn 0.5s ease-in-out;
+        }
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+        .shake {
+            animation: shake 0.5s cubic-bezier(.36,.07,.19,.97) both;
+        }
+        @keyframes shake {
+            10%, 90% { transform: translate3d(-1px, 0, 0); }
+            20%, 80% { transform: translate3d(2px, 0, 0); }
+            30%, 50%, 70% { transform: translate3d(-4px, 0, 0); }
+            40%, 60% { transform: translate3d(4px, 0, 0); }
+        }
+        .digital-rain {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            z-index: 1;
+        }
+        .pixel {
+            position: absolute;
+            width: 2px;
+            height: 2px;
+            background-color: #00ff00;
+            opacity: 0.5;
+            animation: fall linear infinite;
+        }
+        @keyframes fall {
+            0% { transform: translateY(-100vh); }
+            100% { transform: translateY(100vh); }
+        }
+    </style>
+</head>
+<body>
+    <div class="game-container">
+        <canvas id="gameCanvas"></canvas>
+        
+        <!-- HUD 界面 -->
+        <div class="hud">
+            <div class="flex justify-between items-center mb-4">
+                <div class="w-1/3 px-4">
+                    <div class="text-white text-sm mb-1">玩家生命</div>
+                    <div class="health-bar pixel-border">
+                        <div id="playerHealth" class="health-fill" style="width: 100%;"></div>
+                    </div>
+                </div>
+                <div class="w-1/3 px-4">
+                    <div class="text-white text-sm mb-1">玩家能量</div>
+                    <div class="energy-bar pixel-border">
+                        <div id="playerEnergy" class="energy-fill" style="width: 100%;"></div>
+                    </div>
+                </div>
+            </div>
+            <div class="flex justify-between items-center">
+                <div class="w-1/3 px-4">
+                    <div class="text-white text-sm mb-1">敌人生命</div>
+                    <div class="health-bar pixel-border">
+                        <div id="enemyHealth" class="health-fill" style="width: 100%;"></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- 慢动作指示器 -->
+        <div id="slowMotionIndicator" class="slow-motion-indicator">
+            <i class="fa fa-clock-o mr-2"></i>慢动作模式
+        </div>
+        
+        <!-- 控制提示 -->
+        <div class="control-hint">
+            <div>A/D - 移动 | J/L - 攻击 | K - 跳跃 | 空格 - 慢动作 | 1-6 - 切换武器</div>
+            <div class="mt-2">鼠标拖拽角色部位进行操作</div>
+        </div>
+        
+        <!-- 武器指示器 -->
+        <div id="weaponIndicator" class="weapon-indicator">
+            当前武器: <span id="currentWeapon">拳头</span>
+        </div>
+        
+        <!-- 关卡信息 -->
+        <div id="levelInfo" class="level-info">
+            关卡 <span id="currentLevel">1</span>
+        </div>
+        
+        <!-- 敌人信息 -->
+        <div id="enemyInfo" class="enemy-info">
+            <span id="enemyName">CSP-J 选手</span>
+        </div>
+        
+        <!-- 数字雨背景 -->
+        <div id="digitalRain" class="digital-rain"></div>
+    </div>
+    
+    <!-- 主菜单 -->
+    <div id="mainMenu" class="menu fade-in">
+        <h1 class="text-5xl font-bold text-white mb-8 text-center text-glow">编程格斗</h1>
+        <h2 class="text-2xl text-blue-400 mb-8 text-center">火柴人布娃娃物理格斗游戏</h2>
+        <div class="flex flex-col gap-4 w-64 mx-auto">
+            <button id="startGameBtn" class="btn-primary btn-hover">开始游戏</button>
+            <button id="levelSelectBtn" class="btn-secondary btn-hover">选择关卡</button>
+            <button id="controlsBtn" class="btn-info btn-hover">操作说明</button>
+        </div>
+    </div>
+    
+    <!-- 关卡选择 -->
+    <div id="levelSelect" class="menu hidden">
+        <h2 class="text-3xl font-bold text-white mb-6 text-center text-glow">选择关卡</h2>
+        <div class="grid grid-cols-2 gap-4 w-80 mx-auto">
+            <button class="difficulty-btn btn-primary btn-hover" data-level="1">
+                关卡 1: CSP-J 选手
+            </button>
+            <button class="difficulty-btn btn-primary btn-hover locked" data-level="2">
+                <span class="lock-icon mr-2">🔒</span>关卡 2: CSP-S 选手
+            </button>
+            <button class="difficulty-btn btn-primary btn-hover locked" data-level="3">
+                <span class="lock-icon mr-2">🔒</span>关卡 3: NOIP 选手
+            </button>
+            <button class="difficulty-btn btn-primary btn-hover locked" data-level="4">
+                <span class="lock-icon mr-2">🔒</span>关卡 4: 省选选手
+            </button>
+            <button class="difficulty-btn btn-primary btn-hover locked" data-level="5">
+                <span class="lock-icon mr-2">🔒</span>关卡 5: NOI 选手
+            </button>
+            <button class="difficulty-btn btn-primary btn-hover locked" data-level="6">
+                <span class="lock-icon mr-2">🔒</span>关卡 6: CCF 主席
+            </button>
+        </div>
+        <div class="mt-6 text-center">
+            <button id="backToMenuBtn" class="btn-danger btn-hover">返回主菜单</button>
+        </div>
+    </div>
+    
+    <!-- 操作说明 -->
+    <div id="controlsMenu" class="menu hidden">
+        <h2 class="text-3xl font-bold text-white mb-6 text-center text-glow">操作说明</h2>
+        <div class="text-white mb-6">
+            <h3 class="text-xl font-bold mb-2">基本操作:</h3>
+            <ul class="list-disc pl-6 space-y-2">
+                <li>A/D 键 - 左右移动</li>
+                <li>J/L 键 - 左右攻击</li>
+                <li>K 键 - 跳跃</li>
+                <li>空格键 - 慢动作模式（冷却1秒）</li>
+                <li>1-6 数字键 - 切换武器</li>
+            </ul>
+            <h3 class="text-xl font-bold mb-2 mt-4">鼠标操作:</h3>
+            <ul class="list-disc pl-6 space-y-2">
+                <li>拖拽角色头部 - 控制头部动作</li>
+                <li>拖拽角色手臂 - 进行拳击攻击</li>
+                <li>拖拽角色腿部 - 进行踢击或跳跃</li>
+                <li>拖拽角色身体 - 整体移动</li>
+            </ul>
+            <h3 class="text-xl font-bold mb-2 mt-4">游戏规则:</h3>
+            <ul class="list-disc pl-6 space-y-2">
+                <li>按顺序挑战6个关卡</li>
+                <li>击败当前关卡才能解锁下一关</li>
+                <li>任何关卡失败都会重置进度</li>
+                <li>合理使用慢动作和武器系统</li>
+            </ul>
+        </div>
+        <div class="text-center">
+            <button id="closeControlsBtn" class="btn-primary btn-hover">关闭</button>
+        </div>
+    </div>
+    
+    <!-- 游戏结束 -->
+    <div id="gameOver" class="menu hidden">
+        <h2 class="text-4xl font-bold text-red-500 mb-4 text-center text-glow-red">游戏结束</h2>
+        <p class="text-white text-xl mb-6 text-center">你被 <span id="defeatedBy">CSP-J 选手</span> 击败了</p>
+        <p class="text-white mb-6 text-center">进度已重置，需要从头开始挑战</p>
+        <div class="text-center">
+            <button id="restartGameBtn" class="btn-primary btn-hover">重新开始</button>
+        </div>
+    </div>
+    
+    <!-- 胜利界面 -->
+    <div id="victory" class="menu hidden">
+        <h2 class="text-4xl font-bold text-green-500 mb-4 text-center text-glow-green">胜利！</h2>
+        <p class="text-white text-xl mb-6 text-center">你击败了 <span id="victoryEnemy">CSP-J 选手</span></p>
+        <div id="nextLevelInfo" class="text-white mb-6 text-center">
+            关卡 <span id="nextLevelNum">2</span> 已解锁！
+        </div>
+        <div class="text-center">
+            <button id="nextLevelBtn" class="btn-primary btn-hover">进入下一关</button>
+        </div>
+    </div>
+
+    <script>
+        // 获取画布和上下文
+        const canvas = document.getElementById('gameCanvas');
+        const ctx = canvas.getContext('2d');
+        
+        // 设置画布尺寸
+        function resizeCanvas() {
+            canvas.width = window.innerWidth;
+            canvas.height = window.innerHeight;
+        }
+        
+        resizeCanvas();
+        window.addEventListener('resize', resizeCanvas);
+        
+        // 游戏状态
+        const gameState = {
+            currentScreen: 'mainMenu',
+            selectedLevel: 1,
+            currentLevel: 1,
+            maxLevel: 6,
+            completedLevels: [],
+            isGameRunning: false,
+            slowMotionActive: false,
+            slowMotionCooldown: 0,
+            stage: {
+                background: new Image()
+            },
+            mouse: {
+                x: 0,
+                y: 0,
+                isDown: false,
+                lastX: 0,
+                lastY: 0,
+                draggingPart: null,
+                dragOffsetX: 0,
+                dragOffsetY: 0
+            },
+            physics: {
+                gravity: 0.8,
+                friction: 0.95,
+                bounce: 0.2,
+                jointStiffness: 0.9,
+                ragdollForce: 10,
+                maxAngularVelocity: 10
+            },
+            player: {
+                health: 100,
+                energy: 100,
+                x: 200,
+                y: 450,
+                width: 80,
+                height: 150,
+                speed: 5,
+                direction: 'right',
+                ragdoll: {
+                    head: { x: 0, y: -70, radius: 20, angle: 0, angularVelocity: 0, isDragging: false },
+                    torso: { x: 0, y: -20, width: 30, height: 60, angle: 0, angularVelocity: 0, isDragging: false },
+                    leftArm: { x: -25, y: -10, length: 50, angle: -30 * Math.PI / 180, angularVelocity: 0, joint: { x: -15, y: -10 }, isDragging: false },
+                    rightArm: { x: 25, y: -10, length: 50, angle: 30 * Math.PI / 180, angularVelocity: 0, joint: { x: 15, y: -10 }, isDragging: false },
+                    leftLeg: { x: -10, y: 30, length: 70, angle: 15 * Math.PI / 180, angularVelocity: 0, joint: { x: -10, y: 20 }, isDragging: false },
+                    rightLeg: { x: 10, y: 30, length: 70, angle: -15 * Math.PI / 180, angularVelocity: 0, joint: { x: 10, y: 20 }, isDragging: false }
+                },
+                currentWeapon: 'fist',
+                weapons: {
+                    fist: { name: '拳头', damage: 10, range: 50, energyCost: 0 },
+                    binarySearch: { name: '二分查找', damage: 15, range: 80, energyCost: 10 },
+                    treeArray: { name: '树状数组', damage: 20, range: 60, energyCost: 15 },
+                    unionFind: { name: '并查集', damage: 25, range: 50, energyCost: 20 },
+                    dynamicProgramming: { name: '动态规划', damage: 30, range: 70, energyCost: 25 },
+                    dfs: { name: '深度优先搜索', damage: 35, range: 90, energyCost: 30 }
+                },
+                lastAttackTime: 0,
+                isGrounded: true
+            },
+            enemy: {
+                health: 100,
+                x: 600,
+                y: 450,
+                width: 80,
+                height: 150,
+                speed: 3,
+                direction: 'left',
+                ragdoll: {
+                    head: { x: 0, y: -70, radius: 20, angle: 0, angularVelocity: 0 },
+                    torso: { x: 0, y: -20, width: 30, height: 60, angle: 0, angularVelocity: 0 },
+                    leftArm: { x: -25, y: -10, length: 50, angle: -30 * Math.PI / 180, angularVelocity: 0, joint: { x: -15, y: -10 } },
+                    rightArm: { x: 25, y: -10, length: 50, angle: 30 * Math.PI / 180, angularVelocity: 0, joint: { x: 15, y: -10 } },
+                    leftLeg: { x: -10, y: 30, length: 70, angle: 15 * Math.PI / 180, angularVelocity: 0, joint: { x: -10, y: 20 } },
+                    rightLeg: { x: 10, y: 30, length: 70, angle: -15 * Math.PI / 180, angularVelocity: 0, joint: { x: 10, y: 20 } }
+                },
+                difficulty: 1,
+                actionCooldown: 0,
+                lastActionTime: 0,
+                isGrounded: true
+            },
+            keys: {
+                a: false,
+                d: false,
+                j: false,
+                k: false,
+                l: false,
+                space: false
+            },
+            effects: [],
+            stage: {
+                background: new Image(),
+                digitalRain: []
+            },
+            levelData: [
+                { name: 'CSP-J 选手', health: 100, speed: 3, damage: 8, difficulty: 1 },
+                { name: 'CSP-S 选手', health: 120, speed: 4, damage: 10, difficulty: 2 },
+                { name: 'NOIP 选手', health: 140, speed: 4, damage: 12, difficulty: 3 },
+                { name: '省选选手', health: 160, speed: 5, damage: 14, difficulty: 4 },
+                { name: 'NOI 选手', health: 180, speed: 5, damage: 16, difficulty: 5 },
+                { name: 'CCF 主席', health: 200, speed: 6, damage: 20, difficulty: 6 }
+            ]
+        };
+        
+        // 初始化游戏
+        function initGame() {
+            try {
+                console.log('初始化游戏...');
+                
+                // 验证gameState是否存在
+                if (!gameState) {
+                    throw new Error('游戏状态未正确初始化');
+                }
+                
+                // 确保stage对象存在
+                if (!gameState.stage) {
+                    gameState.stage = {
+                        background: new Image()
+                    };
+                }
+                
+                // 设置背景图片
+                gameState.stage.background.src = "https://p3-flow-imagex-sign.byteimg.com/tos-cn-i-a9rns2rl98/rc/pc/super_tool/7fa66471e738478aae30f6370710e285~tplv-a9rns2rl98-image.image?rcl=20251206161902CAE92BAA05DBF23A092F&rk3s=8e244e95&rrcfp=f06b921b&x-expires=1767601153&x-signature=%2FpLIYZEW0XtI9vfAEUcUDy1aYm8%3D";
+                
+                // 预加载背景图片
+                gameState.stage.background.onload = function() {
+                    console.log('背景图片加载完成');
+                };
+                
+                gameState.stage.background.onerror = function() {
+                    console.error('背景图片加载失败');
+                    // 使用备用背景色
+                    document.body.style.backgroundColor = '#0a1929';
+                };
+                
+                // 初始化数字雨
+                initDigitalRain();
+                
+                // 初始化布娃娃物理
+                if (gameState.player && gameState.enemy) {
+                    initRagdollPhysics(gameState.player);
+                    initRagdollPhysics(gameState.enemy);
+                } else {
+                    throw new Error('玩家或敌人对象不存在');
+                }
+                
+                // 加载关卡数据
+                loadLevel(gameState.currentLevel);
+            } catch (error) {
+                console.error('游戏初始化错误:', error);
+                console.error('错误堆栈:', error.stack);
+                
+                // 显示错误信息给用户
+                const gameContainer = document.getElementById('game-container');
+                if (gameContainer) {
+                    gameContainer.innerHTML = `
+                        <div class="error-message">
+                            <h2>游戏初始化失败</h2>
+                            <p>请刷新页面重试</p>
+                            <button onclick="location.reload()">刷新页面</button>
+                        </div>
+                    `;
+                }
+            }
+            
+            console.log('游戏初始化完成');
+        }
+        
+        // 初始化布娃娃物理系统
+        function initRagdollPhysics(character) {
+            // 设置初始角度和角速度
+            character.ragdoll.head.angle = 0;
+            character.ragdoll.head.angularVelocity = 0;
+            character.ragdoll.torso.angle = 0;
+            character.ragdoll.torso.angularVelocity = 0;
+            character.ragdoll.leftArm.angle = -30 * Math.PI / 180;
+            character.ragdoll.leftArm.angularVelocity = 0;
+            character.ragdoll.rightArm.angle = 30 * Math.PI / 180;
+            character.ragdoll.rightArm.angularVelocity = 0;
+            character.ragdoll.leftLeg.angle = 15 * Math.PI / 180;
+            character.ragdoll.leftLeg.angularVelocity = 0;
+            character.ragdoll.rightLeg.angle = -15 * Math.PI / 180;
+            character.ragdoll.rightLeg.angularVelocity = 0;
+        }
+        
+        // 加载关卡
+        function loadLevel(level) {
+            const levelData = gameState.levelData[level - 1];
+            if (!levelData) return;
+            
+            // 重置玩家状态
+            gameState.player.health = 100;
+            gameState.player.energy = 100;
+            gameState.player.x = 200;
+            gameState.player.y = 450;
+            gameState.player.isGrounded = true;
+            initRagdollPhysics(gameState.player);
+            
+            // 设置敌人状态
+            gameState.enemy.health = levelData.health;
+            gameState.enemy.speed = levelData.speed;
+            gameState.enemy.damage = levelData.damage;
+            gameState.enemy.difficulty = levelData.difficulty;
+            gameState.enemy.x = 600;
+            gameState.enemy.y = 450;
+            gameState.enemy.isGrounded = true;
+            gameState.enemy.name = levelData.name;
+            initRagdollPhysics(gameState.enemy);
+            
+            // 更新UI
+            document.getElementById('currentLevel').textContent = level;
+            document.getElementById('enemyName').textContent = levelData.name;
+            updateHUD();
+        }
+        
+        // 检查碰撞
+        function checkCollisions() {
+            try {
+                // 检查玩家和敌人是否碰撞
+                const player = gameState.player;
+                const enemy = gameState.enemy;
+                
+                // 验证对象存在
+                if (!player || !enemy || !player.ragdoll || !enemy.ragdoll) {
+                    console.error('玩家或敌人对象不存在');
+                    return;
+                }
+                
+                const playerLeft = player.x - player.width / 2;
+                const playerRight = player.x + player.width / 2;
+                const playerTop = player.y - player.height / 2;
+                const playerBottom = player.y + player.height / 2;
+                
+                const enemyLeft = enemy.x - enemy.width / 2;
+                const enemyRight = enemy.x + enemy.width / 2;
+                const enemyTop = enemy.y - enemy.height / 2;
+                const enemyBottom = enemy.y + enemy.height / 2;
+                
+                // 简单的矩形碰撞检测
+                if (playerRight > enemyLeft && 
+                    playerLeft < enemyRight && 
+                    playerBottom > enemyTop && 
+                    playerTop < enemyBottom) {
+                    
+                    // 分离玩家和敌人
+                    const overlapX = Math.min(playerRight - enemyLeft, enemyRight - playerLeft);
+                    const overlapY = Math.min(playerBottom - enemyTop, enemyBottom - playerTop);
+                    
+                    if (overlapX < overlapY) {
+                        // 水平分离
+                        if (player.x < enemy.x) {
+                            player.x -= overlapX / 2;
+                            enemy.x += overlapX / 2;
+                        } else {
+                            player.x += overlapX / 2;
+                            enemy.x -= overlapX / 2;
+                        }
+                        
+                        // 添加碰撞效果
+                        player.ragdoll.torso.angularVelocity += 0.3;
+                        enemy.ragdoll.torso.angularVelocity -= 0.3;
+                    } else {
+                        // 垂直分离
+                        if (player.y < enemy.y) {
+                            player.y -= overlapY / 2;
+                            enemy.y += overlapY / 2;
+                        } else {
+                            player.y += overlapY / 2;
+                            enemy.y -= overlapY / 2;
+                        }
+                        
+                        // 添加碰撞效果
+                        player.ragdoll.head.angularVelocity += 0.2;
+                        enemy.ragdoll.head.angularVelocity -= 0.2;
+                    }
+                }
+                
+                // 检查地面碰撞
+                if (player.y > 450) {
+                    player.y = 450;
+                    player.isGrounded = true;
+                }
+                
+                if (enemy.y > 450) {
+                    enemy.y = 450;
+                    enemy.isGrounded = true;
+                }
+                
+            } catch (error) {
+                console.error('碰撞检测错误:', error);
+            }
+        }
+        
+        // 更新布娃娃物理
+        function updateRagdollPhysics(character, dt) {
+            const physics = gameState.physics;
+            const slowMo = gameState.slowMotionActive ? 0.2 : 1;
+            const deltaTime = dt * slowMo;
+            
+            // 更新角速度（简化的物理模拟）
+            character.ragdoll.head.angularVelocity *= physics.friction;
+            character.ragdoll.torso.angularVelocity *= physics.friction;
+            character.ragdoll.leftArm.angularVelocity *= physics.friction;
+            character.ragdoll.rightArm.angularVelocity *= physics.friction;
+            character.ragdoll.leftLeg.angularVelocity *= physics.friction;
+            character.ragdoll.rightLeg.angularVelocity *= physics.friction;
+            
+            // 应用重力影响（如果在空中）
+            if (!character.isGrounded) {
+                character.ragdoll.leftLeg.angularVelocity += physics.gravity * 0.01 * deltaTime;
+                character.ragdoll.rightLeg.angularVelocity -= physics.gravity * 0.01 * deltaTime;
+            }
+            
+            // 更新角度
+            character.ragdoll.head.angle += character.ragdoll.head.angularVelocity * deltaTime;
+            character.ragdoll.torso.angle += character.ragdoll.torso.angularVelocity * deltaTime;
+            character.ragdoll.leftArm.angle += character.ragdoll.leftArm.angularVelocity * deltaTime;
+            character.ragdoll.rightArm.angle += character.ragdoll.rightArm.angularVelocity * deltaTime;
+            character.ragdoll.leftLeg.angle += character.ragdoll.leftLeg.angularVelocity * deltaTime;
+            character.ragdoll.rightLeg.angle += character.ragdoll.rightLeg.angularVelocity * deltaTime;
+            
+            // 约束：保持身体部位相对合理的角度范围
+            character.ragdoll.head.angle = Math.max(-Math.PI/4, Math.min(Math.PI/4, character.ragdoll.head.angle));
+            character.ragdoll.torso.angle = Math.max(-Math.PI/6, Math.min(Math.PI/6, character.ragdoll.torso.angle));
+            character.ragdoll.leftArm.angle = Math.max(-Math.PI*3/4, Math.min(Math.PI*3/4, character.ragdoll.leftArm.angle));
+            character.ragdoll.rightArm.angle = Math.max(-Math.PI*3/4, Math.min(Math.PI*3/4, character.ragdoll.rightArm.angle));
+            character.ragdoll.leftLeg.angle = Math.max(-Math.PI/3, Math.min(Math.PI/3, character.ragdoll.leftLeg.angle));
+            character.ragdoll.rightLeg.angle = Math.max(-Math.PI/3, Math.min(Math.PI/3, character.ragdoll.rightLeg.angle));
+            
+            // 限制最大角速度
+            character.ragdoll.head.angularVelocity = Math.max(-physics.maxAngularVelocity, Math.min(physics.maxAngularVelocity, character.ragdoll.head.angularVelocity));
+            character.ragdoll.torso.angularVelocity = Math.max(-physics.maxAngularVelocity, Math.min(physics.maxAngularVelocity, character.ragdoll.torso.angularVelocity));
+            character.ragdoll.leftArm.angularVelocity = Math.max(-physics.maxAngularVelocity, Math.min(physics.maxAngularVelocity, character.ragdoll.leftArm.angularVelocity));
+            character.ragdoll.rightArm.angularVelocity = Math.max(-physics.maxAngularVelocity, Math.min(physics.maxAngularVelocity, character.ragdoll.rightArm.angularVelocity));
+            character.ragdoll.leftLeg.angularVelocity = Math.max(-physics.maxAngularVelocity, Math.min(physics.maxAngularVelocity, character.ragdoll.leftLeg.angularVelocity));
+            character.ragdoll.rightLeg.angularVelocity = Math.max(-physics.maxAngularVelocity, Math.min(physics.maxAngularVelocity, character.ragdoll.rightLeg.angularVelocity));
+        }
+        
+        // 应用力到布娃娃部位
+        function applyForceToRagdoll(character, bodyPart, forceX, forceY) {
+            try {
+                // 验证参数
+                if (!character || !character.ragdoll || !bodyPart) {
+                    console.error('应用力量参数无效:', character, bodyPart);
+                    return;
+                }
+                
+                const physics = gameState.physics;
+                const force = Math.sqrt(forceX * forceX + forceY * forceY);
+                const torque = force * physics.ragdollForce * 0.01;
+                
+                // 限制最大力量
+                const maxForce = 50;
+                const clampedForce = Math.min(force, maxForce);
+                const scaledTorque = (clampedForce / force) * torque;
+                
+                // 根据力的方向应用扭矩
+                if (bodyPart === 'head' && character.ragdoll.head) {
+                    character.ragdoll.head.angularVelocity += scaledTorque * Math.sign(forceX);
+                    if (character.ragdoll.torso) character.ragdoll.torso.angularVelocity += scaledTorque * 0.3 * Math.sign(forceX);
+                } else if (bodyPart === 'torso' && character.ragdoll.torso) {
+                    character.ragdoll.torso.angularVelocity += scaledTorque * Math.sign(forceX);
+                    if (character.ragdoll.head) character.ragdoll.head.angularVelocity += scaledTorque * 0.5 * Math.sign(forceX);
+                    if (character.ragdoll.leftArm) character.ragdoll.leftArm.angularVelocity += scaledTorque * 0.2 * Math.sign(forceX);
+                    if (character.ragdoll.rightArm) character.ragdoll.rightArm.angularVelocity += scaledTorque * 0.2 * Math.sign(forceX);
+                } else if (bodyPart === 'leftArm' && character.ragdoll.leftArm) {
+                    character.ragdoll.leftArm.angularVelocity += scaledTorque * Math.sign(forceY);
+                } else if (bodyPart === 'rightArm' && character.ragdoll.rightArm) {
+                    character.ragdoll.rightArm.angularVelocity += scaledTorque * Math.sign(forceY);
+                } else if (bodyPart === 'leftLeg' && character.ragdoll.leftLeg) {
+                    character.ragdoll.leftLeg.angularVelocity += scaledTorque * Math.sign(forceY);
+                    if (character.isGrounded) {
+                        character.y -= 30; // 增加跳跃高度
+                        character.isGrounded = false;
+                    }
+                } else if (bodyPart === 'rightLeg' && character.ragdoll.rightLeg) {
+                    character.ragdoll.rightLeg.angularVelocity += scaledTorque * Math.sign(forceY);
+                    if (character.isGrounded) {
+                        character.y -= 30; // 增加跳跃高度
+                        character.isGrounded = false;
+                    }
+                }
+            } catch (error) {
+                console.error('应用力量到布娃娃时出错:', error);
+                console.error('错误堆栈:', error.stack);
+            }
+        }
+        
+        // 检测鼠标是否在布娃娃部位上
+        function getRagdollPartAtPosition(character, x, y) {
+            const parts = ['head', 'torso', 'leftArm', 'rightArm', 'leftLeg', 'rightLeg'];
+            
+            for (const part of parts) {
+                const partData = character.ragdoll[part];
+                let partX = character.x + partData.x;
+                let partY = character.y + partData.y;
+                
+                // 计算部位的世界坐标
+                if (part === 'head') {
+                    partX += Math.sin(character.ragdoll.torso.angle) * 30;
+                    partY += Math.cos(character.ragdoll.torso.angle) * 30;
+                } else if (part === 'leftArm' || part === 'rightArm') {
+                    const jointX = character.x + partData.joint.x;
+                    const jointY = character.y + partData.joint.y;
+                    partX = jointX + Math.sin(partData.angle) * partData.length;
+                    partY = jointY + Math.cos(partData.angle) * partData.length;
+                } else if (part === 'leftLeg' || part === 'rightLeg') {
+                    const jointX = character.x + partData.joint.x;
+                    const jointY = character.y + partData.joint.y;
+                    partX = jointX + Math.sin(partData.angle) * partData.length;
+                    partY = jointY + Math.cos(partData.angle) * partData.length;
+                }
+                
+                // 简单的圆形碰撞检测
+                const distance = Math.sqrt((x - partX) ** 2 + (y - partY) ** 2);
+                const radius = part === 'head' ? partData.radius : 15;
+                
+                if (distance <= radius) {
+                    return {
+                        part: part,
+                        offsetX: x - partX,
+                        offsetY: y - partY
+                    };
+                }
+            }
+            
+            return null;
+        }
+        
+        // 鼠标事件处理
+        function handleMouseDown(e) {
+            const rect = canvas.getBoundingClientRect();
+            const mouseX = e.clientX - rect.left;
+            const mouseY = e.clientY - rect.top;
+            
+            gameState.mouse.isDown = true;
+            gameState.mouse.lastX = mouseX;
+            gameState.mouse.lastY = mouseY;
+            
+            // 检查是否点击了玩家的布娃娃部位
+            const playerPart = getRagdollPartAtPosition(gameState.player, mouseX, mouseY);
+            if (playerPart) {
+                gameState.mouse.draggingPart = {
+                    character: 'player',
+                    part: playerPart.part,
+                    offsetX: playerPart.offsetX,
+                    offsetY: playerPart.offsetY
+                };
+                gameState.player.ragdoll[playerPart.part].isDragging = true;
+                return;
+            }
+            
+            // 检查是否点击了敌人的布娃娃部位
+            const enemyPart = getRagdollPartAtPosition(gameState.enemy, mouseX, mouseY);
+            if (enemyPart) {
+                gameState.mouse.draggingPart = {
+                    character: 'enemy',
+                    part: enemyPart.part,
+                    offsetX: enemyPart.offsetX,
+                    offsetY: enemyPart.offsetY
+                };
+                gameState.enemy.ragdoll[enemyPart.part].isDragging = true;
+            }
+        }
+        
+        function handleMouseMove(e) {
+            const rect = canvas.getBoundingClientRect();
+            const mouseX = e.clientX - rect.left;
+            const mouseY = e.clientY - rect.top;
+            
+            gameState.mouse.x = mouseX;
+            gameState.mouse.y = mouseY;
+            
+            if (gameState.mouse.isDown && gameState.mouse.draggingPart) {
+                const dragPart = gameState.mouse.draggingPart;
+                const character = dragPart.character === 'player' ? gameState.player : gameState.enemy;
+                const part = dragPart.part;
+                
+                // 计算拖拽的力
+                const forceX = mouseX - gameState.mouse.lastX;
+                const forceY = mouseY - gameState.mouse.lastY;
+                
+                // 应用力到布娃娃部位
+                applyForceToRagdoll(character, part, forceX, forceY);
+                
+                // 更新鼠标位置
+                gameState.mouse.lastX = mouseX;
+                gameState.mouse.lastY = mouseY;
+            }
+        }
+        
+        function handleMouseUp(e) {
+            gameState.mouse.isDown = false;
+            
+            if (gameState.mouse.draggingPart) {
+                const dragPart = gameState.mouse.draggingPart;
+                const character = dragPart.character === 'player' ? gameState.player : gameState.enemy;
+                const part = dragPart.part;
+                
+                character.ragdoll[part].isDragging = false;
+                gameState.mouse.draggingPart = null;
+            }
+        }
+        
+        // 键盘事件处理
+        function handleKeyDown(e) {
+            switch(e.key.toLowerCase()) {
+                case 'a':
+                    gameState.keys.a = true;
+                    gameState.player.direction = 'left';
+                    break;
+                case 'd':
+                    gameState.keys.d = true;
+                    gameState.player.direction = 'right';
+                    break;
+                case 'j':
+                    gameState.keys.j = true;
+                    // 左拳攻击
+                    if (gameState.isGameRunning) {
+                        attack(gameState.player, 'left');
+                    }
+                    break;
+                case 'k':
+                    gameState.keys.k = true;
+                    // 跳跃
+                    if (gameState.isGameRunning && gameState.player.isGrounded) {
+                        gameState.player.y -= 100;
+                        gameState.player.isGrounded = false;
+                        // 应用跳跃力到腿部
+                        applyForceToRagdoll(gameState.player, 'leftLeg', 0, -20);
+                        applyForceToRagdoll(gameState.player, 'rightLeg', 0, -20);
+                    }
+                    break;
+                case 'l':
+                    gameState.keys.l = true;
+                    // 右拳攻击
+                    if (gameState.isGameRunning) {
+                        attack(gameState.player, 'right');
+                    }
+                    break;
+                case ' ':
+                    e.preventDefault();
+                    // 慢动作功能
+                    if (gameState.isGameRunning && gameState.slowMotionCooldown === 0) {
+                        gameState.slowMotionActive = !gameState.slowMotionActive;
+                        gameState.slowMotionCooldown = 60; // 1秒冷却（60帧）
+                        updateSlowMotionUI();
+                    } else if (gameState.currentScreen === 'mainMenu') {
+                        startGame();
+                    } else if (gameState.currentScreen === 'levelSelect') {
+                        startGame();
+                    } else if (gameState.currentScreen === 'gameOver') {
+                        gameState.currentScreen = 'mainMenu';
+                        showScreen('mainMenu');
+                    } else if (gameState.currentScreen === 'victory') {
+                        nextLevel();
+                    }
+                    break;
+                case '1':
+                    gameState.player.currentWeapon = 'fist';
+                    updateWeaponUI();
+                    break;
+                case '2':
+                    gameState.player.currentWeapon = 'binarySearch';
+                    updateWeaponUI();
+                    break;
+                case '3':
+                    gameState.player.currentWeapon = 'treeArray';
+                    updateWeaponUI();
+                    break;
+                case '4':
+                    gameState.player.currentWeapon = 'unionFind';
+                    updateWeaponUI();
+                    break;
+                case '5':
+                    gameState.player.currentWeapon = 'dynamicProgramming';
+                    updateWeaponUI();
+                    break;
+                case '6':
+                    gameState.player.currentWeapon = 'dfs';
+                    updateWeaponUI();
+                    break;
+            }
+        }
+        
+        function handleKeyUp(e) {
+            switch(e.key.toLowerCase()) {
+                case 'a':
+                    gameState.keys.a = false;
+                    break;
+                case 'd':
+                    gameState.keys.d = false;
+                    break;
+                case 'j':
+                    gameState.keys.j = false;
+                    break;
+                case 'k':
+                    gameState.keys.k = false;
+                    break;
+                case 'l':
+                    gameState.keys.l = false;
+                    break;
+            }
+        }
+        
+        // 攻击函数
+        function attack(attacker, side) {
+            const currentTime = Date.now();
+            const weapon = attacker.weapons[attacker.currentWeapon];
+            
+            // 检查能量消耗
+            if (attacker.energy < weapon.energyCost) {
+                console.log('能量不足，无法攻击');
+                return;
+            }
+            
+            // 检查攻击冷却
+            if (currentTime - attacker.lastAttackTime < 300) {
+                console.log('攻击冷却中');
+                return;
+            }
+            
+            console.log(`${attacker === gameState.player ? '玩家' : '敌人'}使用${weapon.name}进行${side === 'left' ? '左' : '右'}攻击`);
+            
+            // 消耗能量
+            attacker.energy -= weapon.energyCost;
+            
+            // 应用攻击动画
+            const target = attacker === gameState.player ? gameState.enemy : gameState.player;
+            const arm = side === 'left' ? 'leftArm' : 'rightArm';
+            
+            // 应用攻击力量到手臂（增加力量）
+            const forceX = attacker.direction === 'right' ? 30 : -30;
+            const forceY = -10;
+            applyForceToRagdoll(attacker, arm, forceX, forceY);
+            
+            // 检查是否击中目标
+            const hit = checkAttackHit(attacker, target, side, weapon.range);
+            if (hit) {
+                console.log('攻击命中！');
+                // 造成伤害
+                target.health -= weapon.damage;
+                
+                // 应用被击动画（增加力量）
+                applyForceToRagdoll(target, 'torso', attacker.direction === 'right' ? 25 : -25, -15);
+                
+                // 添加伤害效果
+                addDamageEffect(target.x, target.y, weapon.damage);
+                
+                // 震动屏幕
+                shakeScreen();
+            } else {
+                console.log('攻击未命中');
+            }
+            
+            // 更新攻击时间
+            attacker.lastAttackTime = currentTime;
+            
+            // 更新HUD
+            updateHUD();
+        }
+        
+        // 检查攻击是否命中
+        function checkAttackHit(attacker, target, side, range) {
+            const distance = Math.abs(attacker.x - target.x);
+            const hitRange = range + attacker.width / 2 + target.width / 2;
+            
+            console.log(`攻击检查: 距离=${distance.toFixed(1)}, 攻击范围=${hitRange.toFixed(1)}`);
+            
+            if (distance > hitRange) {
+                return false;
+            }
+            
+            // 简单的方向检查
+            if ((attacker.direction === 'right' && attacker.x > target.x) ||
+                (attacker.direction === 'left' && attacker.x < target.x)) {
+                console.log('方向错误，攻击未命中');
+                return false;
+            }
+            
+            // 检查手臂角度是否适合攻击
+            const arm = side === 'left' ? 'leftArm' : 'rightArm';
+            const armAngle = attacker.ragdoll[arm].angle;
+            const angleThreshold = Math.PI / 3; // 60度
+            
+            if (Math.abs(armAngle) > angleThreshold) {
+                console.log('手臂角度不合适，攻击未命中');
+                return false;
+            }
+            
+            return true;
+        }
+        
+        // 添加伤害效果
+        function addDamageEffect(x, y, damage) {
+            gameState.effects.push({
+                type: 'damage',
+                x: x + Math.random() * 40 - 20,
+                y: y + Math.random() * 40 - 20,
+                damage: damage,
+                life: 30,
+                maxLife: 30
+            });
+        }
+        
+        // 震动屏幕
+        function shakeScreen() {
+            canvas.style.transform = 'translateX(5px)';
+            setTimeout(() => {
+                canvas.style.transform = 'translateX(-5px)';
+                setTimeout(() => {
+                    canvas.style.transform = 'translateX(3px)';
+                    setTimeout(() => {
+                        canvas.style.transform = 'translateX(-3px)';
+                        setTimeout(() => {
+                            canvas.style.transform = 'translateX(0)';
+                        }, 50);
+                    }, 50);
+                }, 50);
+            }, 50);
+        }
+        
+        // 更新慢动作UI
+        function updateSlowMotionUI() {
+            const indicator = document.getElementById('slowMotionIndicator');
+            if (gameState.slowMotionActive) {
+                indicator.classList.add('slow-motion-active');
+            } else {
+                indicator.classList.remove('slow-motion-active');
+            }
+        }
+        
+        // 更新武器UI
+        function updateWeaponUI() {
+            const weaponName = gameState.player.weapons[gameState.player.currentWeapon].name;
+            document.getElementById('currentWeapon').textContent = weaponName;
+        }
+        
+        // 更新HUD
+        function updateHUD() {
+            document.getElementById('playerHealth').style.width = `${gameState.player.health}%`;
+            document.getElementById('playerEnergy').style.width = `${gameState.player.energy}%`;
+            document.getElementById('enemyHealth').style.width = `${gameState.enemy.health}%`;
+        }
+        
+        // 初始化数字雨
+        function initDigitalRain() {
+            const digitalRain = document.getElementById('digitalRain');
+            digitalRain.innerHTML = '';
+            
+            for (let i = 0; i < 100; i++) {
+                const pixel = document.createElement('div');
+                pixel.className = 'pixel';
+                pixel.style.left = `${Math.random() * 100}%`;
+                pixel.style.animationDuration = `${Math.random() * 5 + 5}s`;
+                pixel.style.animationDelay = `${Math.random() * 5}s`;
+                digitalRain.appendChild(pixel);
+            }
+        }
+        
+        // 更新玩家
+        function updatePlayer() {
+            const player = gameState.player;
+            const speed = gameState.slowMotionActive ? player.speed * 0.5 : player.speed;
+            
+            // 处理移动
+            if (gameState.keys.a) {
+                player.x -= speed;
+                player.direction = 'left';
+                // 添加移动动画效果
+                player.ragdoll.leftLeg.angularVelocity += 0.1;
+                player.ragdoll.rightLeg.angularVelocity -= 0.1;
+            }
+            if (gameState.keys.d) {
+                player.x += speed;
+                player.direction = 'right';
+                // 添加移动动画效果
+                player.ragdoll.leftLeg.angularVelocity -= 0.1;
+                player.ragdoll.rightLeg.angularVelocity += 0.1;
+            }
+            
+            // 处理跳跃物理
+            if (!player.isGrounded) {
+                player.y += 3; // 减小重力，使跳跃更自然
+                
+                // 检查是否着地
+                if (player.y >= 450) {
+                    player.y = 450;
+                    player.isGrounded = true;
+                    console.log('玩家着地');
+                }
+            }
+            
+            // 恢复能量（增加恢复速度）
+            if (player.energy < 100) {
+                player.energy += 1;
+                if (player.energy > 100) {
+                    player.energy = 100;
+                }
+            }
+            
+            // 边界检查
+            const minX = player.width / 2;
+            const maxX = canvas.width - player.width / 2;
+            if (player.x < minX) {
+                player.x = minX;
+                // 碰撞反弹效果
+                player.ragdoll.torso.angularVelocity += 0.5;
+            }
+            if (player.x > maxX) {
+                player.x = maxX;
+                // 碰撞反弹效果
+                player.ragdoll.torso.angularVelocity -= 0.5;
+            }
+            
+            // 限制Y轴位置
+            if (player.y > 500) {
+                player.y = 500;
+                player.isGrounded = true;
+            }
+        }
+        
+        // 更新敌人
+        function updateEnemy() {
+            const enemy = gameState.enemy;
+            const player = gameState.player;
+            const speed = gameState.slowMotionActive ? enemy.speed * 0.5 : enemy.speed;
+            
+            // 简单的AI行为
+            if (Math.abs(enemy.x - player.x) > 120) {
+                // 靠近玩家
+                if (enemy.x < player.x) {
+                    enemy.x += speed;
+                    enemy.direction = 'right';
+                    // 添加移动动画效果
+                    enemy.ragdoll.leftLeg.angularVelocity -= 0.1;
+                    enemy.ragdoll.rightLeg.angularVelocity += 0.1;
+                } else {
+                    enemy.x -= speed;
+                    enemy.direction = 'left';
+                    // 添加移动动画效果
+                    enemy.ragdoll.leftLeg.angularVelocity += 0.1;
+                    enemy.ragdoll.rightLeg.angularVelocity -= 0.1;
+                }
+            } else {
+                // 攻击玩家
+                const currentTime = Date.now();
+                const attackInterval = 1000 / enemy.difficulty;
+                
+                if (currentTime - enemy.lastActionTime > attackInterval) {
+                    // 有30%概率跳跃
+                    if (Math.random() < 0.3 && enemy.isGrounded) {
+                        enemy.y -= 50;
+                        enemy.isGrounded = false;
+                        console.log('敌人跳跃');
+                    } else {
+                        const attackSide = Math.random() > 0.5 ? 'left' : 'right';
+                        attack(enemy, attackSide);
+                    }
+                    enemy.lastActionTime = currentTime;
+                }
+            }
+            
+            // 处理跳跃物理
+            if (!enemy.isGrounded) {
+                enemy.y += 3; // 减小重力，使跳跃更自然
+                
+                // 检查是否着地
+                if (enemy.y >= 450) {
+                    enemy.y = 450;
+                    enemy.isGrounded = true;
+                    console.log('敌人着地');
+                }
+            }
+            
+            // 边界检查
+            const minX = enemy.width / 2;
+            const maxX = canvas.width - enemy.width / 2;
+            if (enemy.x < minX) {
+                enemy.x = minX;
+                // 碰撞反弹效果
+                enemy.ragdoll.torso.angularVelocity += 0.5;
+            }
+            if (enemy.x > maxX) {
+                enemy.x = maxX;
+                // 碰撞反弹效果
+                enemy.ragdoll.torso.angularVelocity -= 0.5;
+            }
+            
+            // 限制Y轴位置
+            if (enemy.y > 500) {
+                enemy.y = 500;
+                enemy.isGrounded = true;
+            }
+        }
+        
+        // 更新效果
+        function updateEffects() {
+            for (let i = gameState.effects.length - 1; i >= 0; i--) {
+                const effect = gameState.effects[i];
+                effect.life--;
+                
+                if (effect.life <= 0) {
+                    gameState.effects.splice(i, 1);
+                }
+            }
+        }
+        
+        // 检查游戏状态
+        function checkGameState() {
+            // 检查玩家是否死亡
+            if (gameState.player.health <= 0) {
+                gameState.player.health = 0;
+                gameState.isGameRunning = false;
+                gameState.currentScreen = 'gameOver';
+                document.getElementById('defeatedBy').textContent = gameState.enemy.name;
+                showScreen('gameOver');
+                
+                // 重置进度
+                gameState.completedLevels = [];
+                updateLevelSelection();
+            }
+            
+            // 检查敌人是否死亡
+            if (gameState.enemy.health <= 0) {
+                gameState.enemy.health = 0;
+                gameState.isGameRunning = false;
+                gameState.currentScreen = 'victory';
+                document.getElementById('victoryEnemy').textContent = gameState.enemy.name;
+                
+                // 添加到已完成关卡
+                if (!gameState.completedLevels.includes(gameState.currentLevel)) {
+                    gameState.completedLevels.push(gameState.currentLevel);
+                }
+                
+                // 更新下一关信息
+                if (gameState.currentLevel < gameState.maxLevel) {
+                    document.getElementById('nextLevelNum').textContent = gameState.currentLevel + 1;
+                    document.getElementById('nextLevelInfo').style.display = 'block';
+                    document.getElementById('nextLevelBtn').style.display = 'inline-block';
+                } else {
+                    document.getElementById('nextLevelInfo').style.display = 'none';
+                    document.getElementById('nextLevelBtn').style.display = 'none';
+                }
+                
+                showScreen('victory');
+                updateLevelSelection();
+            }
+        }
+        
+        // 绘制游戏
+        function drawGame() {
+            // 绘制背景
+            ctx.drawImage(gameState.stage.background, 0, 0, canvas.width, canvas.height);
+            
+            // 绘制玩家
+            drawRagdollCharacter(gameState.player, '#3B82F6');
+            
+            // 绘制敌人
+            drawRagdollCharacter(gameState.enemy, '#EF4444');
+            
+            // 绘制效果
+            drawEffects();
+        }
+        
+        // 绘制布娃娃角色
+        function drawRagdollCharacter(character, color) {
+            ctx.save();
+            
+            // 设置角色颜色
+            ctx.strokeStyle = color;
+            ctx.fillStyle = color;
+            ctx.lineWidth = 3;
+            
+            // 绘制身体部位
+            const parts = ['torso', 'leftArm', 'rightArm', 'leftLeg', 'rightLeg', 'head'];
+            
+            for (const part of parts) {
+                const partData = character.ragdoll[part];
+                let partX = character.x + partData.x;
+                let partY = character.y + partData.y;
+                
+                ctx.save();
+                
+                // 绘制部位
+                if (part === 'head') {
+                    // 头部：圆形
+                    partX += Math.sin(character.ragdoll.torso.angle) * 30;
+                    partY += Math.cos(character.ragdoll.torso.angle) * 30;
+                    ctx.beginPath();
+                    ctx.arc(partX, partY, partData.radius, 0, Math.PI * 2);
+                    ctx.fill();
+                    
+                    // 绘制拖拽指示器
+                    if (partData.isDragging) {
+                        ctx.strokeStyle = '#FFFF00';
+                        ctx.lineWidth = 2;
+                        ctx.beginPath();
+                        ctx.arc(partX, partY, partData.radius + 5, 0, Math.PI * 2);
+                        ctx.stroke();
+                    }
+                } else if (part === 'torso') {
+                    // 身体：矩形
+                    ctx.translate(partX, partY);
+                    ctx.rotate(partData.angle);
+                    ctx.strokeRect(-partData.width / 2, -partData.height / 2, partData.width, partData.height);
+                    
+                    // 绘制拖拽指示器
+                    if (partData.isDragging) {
+                        ctx.strokeStyle = '#FFFF00';
+                        ctx.lineWidth = 2;
+                        ctx.strokeRect(-partData.width / 2 - 3, -partData.height / 2 - 3, partData.width + 6, partData.height + 6);
+                    }
+                } else if (part === 'leftArm' || part === 'rightArm' || part === 'leftLeg' || part === 'rightLeg') {
+                    // 四肢：线段
+                    const jointX = character.x + partData.joint.x;
+                    const jointY = character.y + partData.joint.y;
+                    
+                    ctx.translate(jointX, jointY);
+                    ctx.rotate(partData.angle);
+                    
+                    // 绘制关节点
+                    ctx.beginPath();
+                    ctx.arc(0, 0, 5, 0, Math.PI * 2);
+                    ctx.fill();
+                    
+                    // 绘制肢体
+                    ctx.beginPath();
+                    ctx.moveTo(0, 0);
+                    ctx.lineTo(0, partData.length);
+                    ctx.stroke();
+                    
+                    // 绘制手部/脚部
+                    ctx.beginPath();
+                    ctx.arc(0, partData.length, 8, 0, Math.PI * 2);
+                    ctx.fill();
+                    
+                    // 绘制拖拽指示器
+                    if (partData.isDragging) {
+                        ctx.strokeStyle = '#FFFF00';
+                        ctx.lineWidth = 2;
+                        ctx.beginPath();
+                        ctx.moveTo(-3, -3);
+                        ctx.lineTo(3, 3);
+                        ctx.moveTo(3, -3);
+                        ctx.lineTo(-3, 3);
+                        ctx.stroke();
+                    }
+                }
+                
+                ctx.restore();
+            }
+            
+            ctx.restore();
+        }
+        
+        // 绘制效果
+        function drawEffects() {
+            ctx.save();
+            
+            for (const effect of gameState.effects) {
+                if (effect.type === 'damage') {
+                    // 绘制伤害数字
+                    const alpha = effect.life / effect.maxLife;
+                    ctx.globalAlpha = alpha;
+                    ctx.font = 'bold 24px Arial';
+                    ctx.fillStyle = '#FF0000';
+                    ctx.fillText(`-${effect.damage}`, effect.x, effect.y - (effect.maxLife - effect.life) * 0.5);
+                }
+            }
+            
+            ctx.restore();
+        }
+        
+        // 游戏主循环
+        function gameLoop() {
+            try {
+                if (gameState.isGameRunning) {
+                    // 更新慢动作冷却
+                    if (gameState.slowMotionCooldown > 0) {
+                        gameState.slowMotionCooldown--;
+                        if (gameState.slowMotionCooldown === 0 && gameState.slowMotionActive) {
+                            gameState.slowMotionActive = false;
+                            updateSlowMotionUI();
+                        }
+                    }
+                    
+                    // 更新游戏状态
+                    updatePlayer();
+                    updateEnemy();
+                    updateEffects();
+                    
+                    // 更新布娃娃物理
+                    const dt = 1;
+                    updateRagdollPhysics(gameState.player, dt);
+                    updateRagdollPhysics(gameState.enemy, dt);
+                    
+                    // 检查碰撞
+                    checkCollisions();
+                    
+                    // 检查游戏状态
+                    checkGameState();
+                    
+                    // 绘制游戏
+                    drawGame();
+                }
+            } catch (error) {
+                console.error('游戏循环错误:', error);
+                console.error('错误堆栈:', error.stack);
+                
+                // 尝试恢复游戏
+                if (gameState.isGameRunning) {
+                    console.log('尝试恢复游戏...');
+                    // 重置可能导致错误的状态
+                    gameState.player.isGrounded = true;
+                    gameState.enemy.isGrounded = true;
+                    if (gameState.player.y > 500) gameState.player.y = 450;
+                    if (gameState.enemy.y > 500) gameState.enemy.y = 450;
+                }
+            }
+            
+            // 继续游戏循环
+            requestAnimationFrame(gameLoop);
+        }
+        
+        // 开始游戏
+        function startGame() {
+            gameState.isGameRunning = true;
+            gameState.currentLevel = gameState.selectedLevel;
+            loadLevel(gameState.currentLevel);
+            showScreen('game');
+        }
+        
+        // 进入下一关
+        function nextLevel() {
+            if (gameState.currentLevel < gameState.maxLevel) {
+                gameState.currentLevel++;
+                gameState.selectedLevel = gameState.currentLevel;
+                startGame();
+            } else {
+                // 游戏完成
+                gameState.currentScreen = 'mainMenu';
+                showScreen('mainMenu');
+            }
+        }
+        
+        // 显示屏幕
+        function showScreen(screenId) {
+            // 隐藏所有菜单
+            document.getElementById('mainMenu').classList.add('hidden');
+            document.getElementById('levelSelect').classList.add('hidden');
+            document.getElementById('controlsMenu').classList.add('hidden');
+            document.getElementById('gameOver').classList.add('hidden');
+            document.getElementById('victory').classList.add('hidden');
+            
+            // 显示指定菜单
+            if (screenId !== 'game') {
+                document.getElementById(screenId).classList.remove('hidden');
+            }
+            
+            // 更新游戏状态
+            gameState.currentScreen = screenId;
+        }
+        
+        // 更新关卡选择
+        function updateLevelSelection() {
+            const levelBtns = document.querySelectorAll('.difficulty-btn');
+            
+            levelBtns.forEach(btn => {
+                const level = parseInt(btn.dataset.level);
+                
+                // 检查关卡是否已完成
+                if (gameState.completedLevels.includes(level)) {
+                    btn.classList.remove('locked');
+                    btn.classList.add('completed');
+                    // 移除锁图标
+                    const lockIcon = btn.querySelector('.lock-icon');
+                    if (lockIcon) {
+                        lockIcon.remove();
+                    }
+                } 
+                // 检查关卡是否可解锁（前一关已完成）
+                else if (level > 1 && gameState.completedLevels.includes(level - 1)) {
+                    btn.classList.remove('locked');
+                    // 移除锁图标
+                    const lockIcon = btn.querySelector('.lock-icon');
+                    if (lockIcon) {
+                        lockIcon.remove();
+                    }
+                }
+            });
+        }
+        
+        // 事件监听器
+        document.getElementById('startGameBtn').addEventListener('click', () => {
+            gameState.selectedLevel = 1;
+            startGame();
+        });
+        
+        document.getElementById('levelSelectBtn').addEventListener('click', () => {
+            showScreen('levelSelect');
+        });
+        
+        document.getElementById('controlsBtn').addEventListener('click', () => {
+            showScreen('controlsMenu');
+        });
+        
+        document.getElementById('closeControlsBtn').addEventListener('click', () => {
+            showScreen('mainMenu');
+        });
+        
+        document.getElementById('backToMenuBtn').addEventListener('click', () => {
+            showScreen('mainMenu');
+        });
+        
+        document.getElementById('restartGameBtn').addEventListener('click', () => {
+            showScreen('mainMenu');
+        });
+        
+        document.getElementById('nextLevelBtn').addEventListener('click', () => {
+            nextLevel();
+        });
+        
+        // 关卡选择按钮
+        document.querySelectorAll('.difficulty-btn').forEach(btn => {
+            btn.addEventListener('click', () => {
+                const level = parseInt(btn.dataset.level);
+                
+                // 检查关卡是否可解锁
+                if (!btn.classList.contains('locked')) {
+                    gameState.selectedLevel = level;
+                    startGame();
+                }
+            });
+        });
+        
+        // 键盘事件
+        window.addEventListener('keydown', handleKeyDown);
+        window.addEventListener('keyup', handleKeyUp);
+        
+        // 鼠标事件
+        canvas.addEventListener('mousedown', handleMouseDown);
+        canvas.addEventListener('mousemove', handleMouseMove);
+        canvas.addEventListener('mouseup', handleMouseUp);
+        canvas.addEventListener('mouseleave', handleMouseUp);
+        
+        // 触摸事件支持
+        canvas.addEventListener('touchstart', (e) => {
+            e.preventDefault();
+            const touch = e.touches[0];
+            const mouseEvent = new MouseEvent('mousedown', {
+                clientX: touch.clientX,
+                clientY: touch.clientY
+            });
+            handleMouseDown(mouseEvent);
+        });
+        
+        canvas.addEventListener('touchmove', (e) => {
+            e.preventDefault();
+            const touch = e.touches[0];
+            const mouseEvent = new MouseEvent('mousemove', {
+                clientX: touch.clientX,
+                clientY: touch.clientY
+            });
+            handleMouseMove(mouseEvent);
+        });
+        
+        canvas.addEventListener('touchend', (e) => {
+            e.preventDefault();
+            handleMouseUp(e);
+        });
+        
+        // 初始化游戏
+        initGame();
+        
+        // 开始游戏循环
+        gameLoop();
+    </script>
+</body>
+</html>
