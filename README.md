@@ -1,2 +1,2 @@
 # fightCCF
-和CCF战斗
+和CCF战斗吧！！！
