@@ -1,2 +1,2 @@
 # fightCCF
-殴打CCF
+和CCF战斗
