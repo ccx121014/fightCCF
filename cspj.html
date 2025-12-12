@@ -1,0 +1,988 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>FightCCF - CSP-J 关卡</title>
+  <!-- Tailwind CSS v3 -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <!-- Lucide 图标库 -->
+  <script src="https://cdn.jsdelivr.net/npm/lucide@0.544.0/dist/umd/lucide.min.js"></script>
+  <!-- 配置 Tailwind -->
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          colors: {
+            primary: '#0ea5e9',
+            secondary: '#10b981',
+            accent: '#f97316',
+            dark: '#0f172a',
+            light: '#f8fafc'
+          },
+          fontFamily: {
+            sans: ['Inter', 'system-ui', 'sans-serif'],
+          },
+          animation: {
+            'float': 'float 3s ease-in-out infinite',
+            'pulse-slow': 'pulse 4s cubic-bezier(0.4, 0, 0.6, 1) infinite',
+            'glow': 'glow 2s ease-in-out infinite alternate',
+            'slide-in': 'slideIn 0.5s ease-out forwards',
+            'fade-in': 'fadeIn 0.5s ease-out forwards',
+            'shake': 'shake 0.5s cubic-bezier(.36,.07,.19,.97) both',
+            'attack': 'attack 0.5s ease-out forwards',
+            'hurt': 'hurt 0.3s ease-out forwards',
+            'skill': 'skill 0.8s ease-out forwards',
+            'victory': 'victory 1s ease-out forwards',
+            'defeat': 'defeat 1s ease-out forwards',
+            'float-up': 'floatUp 3s ease-out forwards',
+            'typewriter': 'typewriter 3s steps(40, end)',
+            'cursor-blink': 'cursorBlink 1s step-end infinite',
+          },
+          keyframes: {
+            float: {
+              '0%, 100%': { transform: 'translateY(0)' },
+              '50%': { transform: 'translateY(-10px)' },
+            },
+            glow: {
+              '0%': { boxShadow: '0 0 5px rgba(14, 165, 233, 0.5)' },
+              '100%': { boxShadow: '0 0 20px rgba(14, 165, 233, 0.8), 0 0 30px rgba(14, 165, 233, 0.6)' },
+            },
+            slideIn: {
+              '0%': { transform: 'translateX(-100%)', opacity: '0' },
+              '100%': { transform: 'translateX(0)', opacity: '1' },
+            },
+            fadeIn: {
+              '0%': { opacity: '0' },
+              '100%': { opacity: '1' },
+            },
+            shake: {
+              '10%, 90%': { transform: 'translate3d(-1px, 0, 0)' },
+              '20%, 80%': { transform: 'translate3d(2px, 0, 0)' },
+              '30%, 50%, 70%': { transform: 'translate3d(-4px, 0, 0)' },
+              '40%, 60%': { transform: 'translate3d(4px, 0, 0)' },
+            },
+            attack: {
+              '0%': { transform: 'translateX(0)' },
+              '50%': { transform: 'translateX(30px)' },
+              '100%': { transform: 'translateX(0)' },
+            },
+            hurt: {
+              '0%': { transform: 'translateX(0)', opacity: '1' },
+              '25%': { transform: 'translateX(-10px)', opacity: '0.7' },
+              '50%': { transform: 'translateX(10px)', opacity: '0.7' },
+              '75%': { transform: 'translateX(-10px)', opacity: '0.7' },
+              '100%': { transform: 'translateX(0)', opacity: '1' },
+            },
+            skill: {
+              '0%': { transform: 'scale(1)', opacity: '1' },
+              '50%': { transform: 'scale(1.2)', opacity: '0.8' },
+              '100%': { transform: 'scale(1)', opacity: '1' },
+            },
+            victory: {
+              '0%': { transform: 'translateY(0)' },
+              '25%': { transform: 'translateY(-20px)' },
+              '50%': { transform: 'translateY(0)' },
+              '75%': { transform: 'translateY(-10px)' },
+              '100%': { transform: 'translateY(0)' },
+            },
+            defeat: {
+              '0%': { transform: 'rotate(0deg)' },
+              '100%': { transform: 'rotate(90deg) translateY(20px)' },
+            },
+            floatUp: {
+              '0%': { transform: 'translateY(0)', opacity: '1' },
+              '100%': { transform: 'translateY(-50px)', opacity: '0' },
+            },
+            typewriter: {
+              'from': { width: '0' },
+              'to': { width: '100%' },
+            },
+            cursorBlink: {
+              'from, to': { borderColor: 'transparent' },
+              '50%': { borderColor: 'white' },
+            }
+          }
+        }
+      }
+    }
+  </script>
+  <style type="text/tailwindcss">
+    @layer utilities {
+      .text-shadow {
+        text-shadow: 0 2px 4px rgba(0,0,0,0.1);
+      }
+      .text-shadow-glow {
+        text-shadow: 0 0 10px rgba(14, 165, 233, 0.7);
+      }
+      .bg-grid {
+        background-image: 
+          linear-gradient(rgba(14, 165, 233, 0.1) 1px, transparent 1px),
+          linear-gradient(90deg, rgba(14, 165, 233, 0.1) 1px, transparent 1px);
+        background-size: 20px 20px;
+      }
+      .glass {
+        background: rgba(255, 255, 255, 0.1);
+        backdrop-filter: blur(10px);
+        -webkit-backdrop-filter: blur(10px);
+        border: 1px solid rgba(255, 255, 255, 0.2);
+      }
+      .pixel-art {
+        image-rendering: pixelated;
+        image-rendering: crisp-edges;
+      }
+      .health-bar {
+        transition: width 0.3s ease-out;
+      }
+      .skill-btn {
+        transition: all 0.2s ease;
+      }
+      .skill-btn:hover:not(:disabled) {
+        transform: translateY(-2px);
+        box-shadow: 0 4px 12px rgba(14, 165, 233, 0.5);
+      }
+      .skill-btn:active:not(:disabled) {
+        transform: translateY(0);
+      }
+      .skill-btn:disabled {
+        opacity: 0.5;
+        cursor: not-allowed;
+      }
+      .floating-text {
+        position: absolute;
+        font-weight: bold;
+        pointer-events: none;
+        z-index: 10;
+      }
+      .damage-text {
+        color: #ef4444;
+        text-shadow: 0 0 3px rgba(0, 0, 0, 0.5);
+      }
+      .heal-text {
+        color: #10b981;
+        text-shadow: 0 0 3px rgba(0, 0, 0, 0.5);
+      }
+      .typewriter {
+        overflow: hidden;
+        border-right: 0.15em solid white;
+        white-space: nowrap;
+        margin: 0 auto;
+        animation: 
+          typewriter 3.5s steps(40, end),
+          cursorBlink 1s step-end infinite;
+      }
+    }
+  </style>
+</head>
+<body class="bg-dark text-light min-h-screen overflow-x-hidden bg-grid">
+  <!-- 顶部导航栏 -->
+  <header class="glass rounded-b-xl p-4 flex justify-between items-center shadow-lg">
+    <div class="flex items-center space-x-2">
+      <button id="backToHomeBtn" class="text-gray-300 hover:text-white transition-colors">
+        <i data-lucide="arrow-left"></i>
+      </button>
+      <h1 class="text-xl font-bold text-primary">CSP-J 关卡</h1>
+    </div>
+    
+    <div class="flex items-center space-x-4">
+      <div class="flex items-center space-x-2">
+        <span id="currentLevelDisplay" class="font-medium">第 1 关</span>
+      </div>
+      <div class="flex items-center space-x-2">
+        <i data-lucide="clock" class="w-4 h-4 text-gray-400"></i>
+        <span id="timerDisplay" class="font-medium">120</span>秒
+      </div>
+    </div>
+  </header>
+
+  <!-- 主要内容区域 -->
+  <main class="container mx-auto p-4 md:p-6">
+    <!-- 战斗区域 -->
+    <div class="glass rounded-xl p-6 mb-6 relative overflow-hidden">
+      <!-- 背景装饰 -->
+      <div class="absolute top-0 left-0 w-full h-full opacity-10">
+        <div class="absolute top-4 left-4 text-6xl text-primary/30"><i data-lucide="code"></i></div>
+        <div class="absolute bottom-4 right-4 text-6xl text-primary/30"><i data-lucide="terminal"></i></div>
+      </div>
+      
+      <!-- 战斗场景 -->
+      <div class="relative h-80 md:h-96 flex items-center justify-between px-4 md:px-8 z-10">
+        <!-- 玩家角色 -->
+        <div id="playerCharacter" class="relative flex flex-col items-center">
+          <div class="w-32 h-32 md:w-40 md:h-40 pixel-art">
+            <img src="https://p3-flow-imagex-sign.byteimg.com/tos-cn-i-a9rns2rl98/rc/pc/super_tool/197a6a81a61645488391f98217cc00d3~tplv-a9rns2rl98-image.image?rcl=20251212170252A1741B79BA185B0B0CB4&rk3s=8e244e95&rrcfp=f06b921b&x-expires=1768122212&x-signature=09DGUEW6Sf7Bc79ZIm40tc9ZdGo%3D" alt="玩家角色" class="w-full h-full object-contain">
+          </div>
+          <div class="mt-2 font-bold text-center">红码客</div>
+          
+          <!-- 玩家血条 -->
+          <div class="mt-2 w-40 bg-gray-700 rounded-full h-3 overflow-hidden">
+            <div id="playerHealthBar" class="bg-green-500 h-full health-bar" style="width: 100%"></div>
+          </div>
+          <div class="text-xs mt-1 text-gray-300"><span id="playerHealthText">100</span>/100</div>
+        </div>
+        
+        <!-- VS标志 -->
+        <div class="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 text-3xl font-bold text-gray-500">
+          VS
+        </div>
+        
+        <!-- 敌人角色 -->
+        <div id="enemyCharacter" class="relative flex flex-col items-center">
+          <div class="w-32 h-32 md:w-40 md:h-40 pixel-art">
+            <img id="enemyImage" src="https://p3-flow-imagex-sign.byteimg.com/tos-cn-i-a9rns2rl98/rc/pc/super_tool/10e759e5f23a453c9fb6aa20648388f9~tplv-a9rns2rl98-image.image?rcl=20251212170252A1741B79BA185B0B0CB4&rk3s=8e244e95&rrcfp=f06b921b&x-expires=1768122212&x-signature=RZLCJrJozp7G29lJIDINIz%2FbJWs%3D" alt="敌人角色" class="w-full h-full object-contain">
+          </div>
+          <div id="enemyName" class="mt-2 font-bold text-center">代码病毒</div>
+          
+          <!-- 敌人血条 -->
+          <div class="mt-2 w-40 bg-gray-700 rounded-full h-3 overflow-hidden">
+            <div id="enemyHealthBar" class="bg-red-500 h-full health-bar" style="width: 100%"></div>
+          </div>
+          <div class="text-xs mt-1 text-gray-300"><span id="enemyHealthText">100</span>/100</div>
+        </div>
+      </div>
+      
+      <!-- 战斗日志 -->
+      <div class="mt-4 h-24 md:h-32 overflow-y-auto glass rounded-lg p-3 text-sm">
+        <div id="battleLog" class="space-y-1">
+          <div class="animate-fade-in">战斗开始！</div>
+          <div class="animate-fade-in">你遇到了 <span class="text-red-400">代码病毒</span>！</div>
+        </div>
+      </div>
+    </div>
+    
+    <!-- 技能区域 -->
+    <div class="glass rounded-xl p-4">
+      <h2 class="text-lg font-bold mb-4 flex items-center">
+        <i data-lucide="zap" class="mr-2"></i>技能
+      </h2>
+      
+      <div class="grid grid-cols-1 sm:grid-cols-2 gap-4" id="skillsContainer">
+        <button id="skill1" class="skill-btn glass rounded-lg p-4 flex items-center justify-between hover:bg-primary/20 transition-colors">
+          <div class="flex items-center">
+            <div class="w-10 h-10 rounded-full bg-primary/30 flex items-center justify-center mr-3">
+              <i data-lucide="arrow-up-right"></i>
+            </div>
+            <div>
+              <h3 class="font-bold">快速排序</h3>
+              <p class="text-xs text-gray-400">对敌人造成100点伤害，并降低其速度30%</p>
+            </div>
+          </div>
+          <div class="text-xs bg-primary/20 px-2 py-1 rounded">冷却: 0</div>
+        </button>
+        
+        <button id="skill2" class="skill-btn glass rounded-lg p-4 flex items-center justify-between hover:bg-primary/20 transition-colors">
+          <div class="flex items-center">
+            <div class="w-10 h-10 rounded-full bg-primary/30 flex items-center justify-center mr-3">
+              <i data-lucide="search"></i>
+            </div>
+            <div>
+              <h3 class="font-bold">二分查找</h3>
+              <p class="text-xs text-gray-400">精准打击敌人弱点，造成150点伤害</p>
+            </div>
+          </div>
+          <div class="text-xs bg-primary/20 px-2 py-1 rounded">冷却: 0</div>
+        </button>
+        
+        <button id="basicAttack" class="skill-btn glass rounded-lg p-4 flex items-center justify-between hover:bg-primary/20 transition-colors col-span-1 sm:col-span-2">
+          <div class="flex items-center">
+            <div class="w-10 h-10 rounded-full bg-gray-600/50 flex items-center justify-center mr-3">
+              <i data-lucide="fist"></i>
+            </div>
+            <div>
+              <h3 class="font-bold">基础攻击</h3>
+              <p class="text-xs text-gray-400">对敌人造成50点伤害</p>
+            </div>
+          </div>
+          <div class="text-xs bg-gray-600/50 px-2 py-1 rounded">无冷却</div>
+        </button>
+      </div>
+    </div>
+  </main>
+
+  <!-- 关卡完成模态框 -->
+  <div id="levelCompleteModal" class="fixed inset-0 bg-black/80 flex items-center justify-center p-4 z-50 hidden">
+    <div class="glass rounded-xl p-6 max-w-md w-full text-center animate-fade-in">
+      <div class="w-20 h-20 mx-auto mb-4 text-green-500 animate-pulse-slow">
+        <i data-lucide="trophy" class="w-full h-full"></i>
+      </div>
+      <h3 class="text-2xl font-bold mb-2">关卡完成！</h3>
+      <p class="text-gray-300 mb-4">恭喜你成功击败了所有敌人！</p>
+      <div class="glass rounded-lg p-4 mb-6">
+        <h4 class="font-semibold mb-2">奖励</h4>
+        <div class="flex justify-center items-center space-x-4">
+          <div class="text-center">
+            <div class="w-16 h-16 mx-auto mb-2 rounded-full overflow-hidden pixel-art">
+              <img src="https://p3-flow-imagex-sign.byteimg.com/tos-cn-i-a9rns2rl98/rc/pc/super_tool/7f63c65075ee4b85a3b4a2adbc9f1de7~tplv-a9rns2rl98-image.image?rcl=2025121216030395467CD91F7E894B454B&rk3s=8e244e95&rrcfp=f06b921b&x-expires=1768118658&x-signature=ehkU6tO3dk8prr3fy2rKF4SiGOI%3D" alt="蓝程序" class="w-full h-full object-cover">
+            </div>
+            <p class="text-sm">解锁角色: 蓝程序</p>
+          </div>
+          <div class="text-center">
+            <div class="w-16 h-16 mx-auto mb-2 rounded-lg overflow-hidden pixel-art">
+              <img src="https://p3-flow-imagex-sign.byteimg.com/tos-cn-i-a9rns2rl98/rc/pc/super_tool/013c5cb111744edd886b1c7fe1a4ff09~tplv-a9rns2rl98-image.image?rcl=2025121216030395467CD91F7E894B454B&rk3s=8e244e95&rrcfp=f06b921b&x-expires=1768118643&x-signature=RExUSdqoMW1ClijZz5%2Bl7Q0oDTQ%3D" alt="CSP-S" class="w-full h-full object-contain">
+            </div>
+            <p class="text-sm">解锁关卡: CSP-S</p>
+          </div>
+        </div>
+      </div>
+      <div class="flex space-x-4">
+        <button id="nextLevelBtn" class="flex-1 px-4 py-2 bg-primary text-white rounded-lg hover:bg-primary/90 transition-all">
+          下一关
+        </button>
+        <button id="backToHomeFromCompleteBtn" class="flex-1 px-4 py-2 bg-gray-700 text-white rounded-lg hover:bg-gray-600 transition-all">
+          返回主页
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- 游戏失败模态框 -->
+  <div id="gameOverModal" class="fixed inset-0 bg-black/80 flex items-center justify-center p-4 z-50 hidden">
+    <div class="glass rounded-xl p-6 max-w-md w-full text-center animate-fade-in">
+      <div class="w-20 h-20 mx-auto mb-4 text-red-500">
+        <i data-lucide="x-circle" class="w-full h-full"></i>
+      </div>
+      <h3 class="text-2xl font-bold mb-2">游戏失败</h3>
+      <p class="text-gray-300 mb-6">你被敌人击败了！再接再厉！</p>
+      <div class="flex space-x-4">
+        <button id="retryBtn" class="flex-1 px-4 py-2 bg-primary text-white rounded-lg hover:bg-primary/90 transition-all">
+          重试
+        </button>
+        <button id="backToHomeFromOverBtn" class="flex-1 px-4 py-2 bg-gray-700 text-white rounded-lg hover:bg-gray-600 transition-all">
+          返回主页
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    // 初始化Lucide图标
+    lucide.createIcons();
+    
+    // 游戏状态
+    const gameState = {
+      player: {
+        health: 100,
+        maxHealth: 100,
+        speed: 100,
+        attackPower: 100
+      },
+      enemy: {
+        health: 100,
+        maxHealth: 100,
+        speed: 100,
+        attackPower: 50,
+        name: "代码病毒",
+        image: "https://p3-flow-imagex-sign.byteimg.com/tos-cn-i-a9rns2rl98/rc/pc/super_tool/10e759e5f23a453c9fb6aa20648388f9~tplv-a9rns2rl98-image.image?rcl=20251212170252A1741B79BA185B0B0CB4&rk3s=8e244e95&rrcfp=f06b921b&x-expires=1768122212&x-signature=RZLCJrJozp7G29lJIDINIz%2FbJWs%3D"
+      },
+      skills: {
+        skill1: {
+          name: "快速排序",
+          damage: 100,
+          cooldown: 3,
+          currentCooldown: 0,
+          effect: "reduceSpeed"
+        },
+        skill2: {
+          name: "二分查找",
+          damage: 150,
+          cooldown: 5,
+          currentCooldown: 0,
+          effect: "precision"
+        }
+      },
+      currentLevel: 1,
+      maxLevel: 3,
+      isPlayerTurn: true,
+      isBattleActive: true,
+      timer: 120,
+      maxTimer: 120,
+      timerInterval: null,
+      enemyTypes: [
+        {
+          name: "代码病毒",
+          health: 100,
+          attackPower: 50,
+          image: "https://p3-flow-imagex-sign.byteimg.com/tos-cn-i-a9rns2rl98/rc/pc/super_tool/10e759e5f23a453c9fb6aa20648388f9~tplv-a9rns2rl98-image.image?rcl=20251212170252A1741B79BA185B0B0CB4&rk3s=8e244e95&rrcfp=f06b921b&x-expires=1768122212&x-signature=RZLCJrJozp7G29lJIDINIz%2FbJWs%3D"
+        },
+        {
+          name: "算法怪物",
+          health: 150,
+          attackPower: 60,
+          image: "https://p3-flow-imagex-sign.byteimg.com/tos-cn-i-a9rns2rl98/rc/pc/super_tool/f1d20b80f7bd4219a108ad3878a0f073~tplv-a9rns2rl98-image.image?rcl=20251212170252A1741B79BA185B0B0CB4&rk3s=8e244e95&rrcfp=f06b921b&x-expires=1768122212&x-signature=gbg%2BNKIkg8URfxmUG8RioFk%2FLHw%3D"
+        },
+        {
+          name: "CSP-J Boss",
+          health: 300,
+          attackPower: 80,
+          image: "https://p26-doubao-search-sign.byteimg.com/labis/08bc24ea7b41c645c60b54ea5aa83e20~tplv-be4g95zd3a-image.jpeg?rk3s=542c0f93&x-expires=1781078622&x-signature=1B2Ql8tH%2BMrwHWRkawPTE1bcXtI%3D"
+        }
+      ]
+    };
+    
+    // DOM元素
+    const playerHealthBar = document.getElementById('playerHealthBar');
+    const playerHealthText = document.getElementById('playerHealthText');
+    const enemyHealthBar = document.getElementById('enemyHealthBar');
+    const enemyHealthText = document.getElementById('enemyHealthText');
+    const enemyName = document.getElementById('enemyName');
+    const enemyImage = document.getElementById('enemyImage');
+    const currentLevelDisplay = document.getElementById('currentLevelDisplay');
+    const timerDisplay = document.getElementById('timerDisplay');
+    const battleLog = document.getElementById('battleLog');
+    const skill1Btn = document.getElementById('skill1');
+    const skill2Btn = document.getElementById('skill2');
+    const basicAttackBtn = document.getElementById('basicAttack');
+    const playerCharacter = document.getElementById('playerCharacter');
+    const enemyCharacter = document.getElementById('enemyCharacter');
+    const levelCompleteModal = document.getElementById('levelCompleteModal');
+    const gameOverModal = document.getElementById('gameOverModal');
+    const backToHomeBtn = document.getElementById('backToHomeBtn');
+    const nextLevelBtn = document.getElementById('nextLevelBtn');
+    const retryBtn = document.getElementById('retryBtn');
+    const backToHomeFromCompleteBtn = document.getElementById('backToHomeFromCompleteBtn');
+    const backToHomeFromOverBtn = document.getElementById('backToHomeFromOverBtn');
+    
+    // 更新血条显示
+    function updateHealthBars() {
+      // 玩家血条
+      const playerHealthPercent = (gameState.player.health / gameState.player.maxHealth) * 100;
+      playerHealthBar.style.width = `${playerHealthPercent}%`;
+      playerHealthText.textContent = gameState.player.health;
+      
+      // 敌人血条
+      const enemyHealthPercent = (gameState.enemy.health / gameState.enemy.maxHealth) * 100;
+      enemyHealthBar.style.width = `${enemyHealthPercent}%`;
+      enemyHealthText.textContent = gameState.enemy.health;
+      
+      // 根据血量改变血条颜色
+      if (playerHealthPercent <= 25) {
+        playerHealthBar.classList.remove('bg-green-500', 'bg-yellow-500');
+        playerHealthBar.classList.add('bg-red-500');
+      } else if (playerHealthPercent <= 50) {
+        playerHealthBar.classList.remove('bg-green-500', 'bg-red-500');
+        playerHealthBar.classList.add('bg-yellow-500');
+      } else {
+        playerHealthBar.classList.remove('bg-yellow-500', 'bg-red-500');
+        playerHealthBar.classList.add('bg-green-500');
+      }
+      
+      if (enemyHealthPercent <= 25) {
+        enemyHealthBar.classList.remove('bg-red-500', 'bg-yellow-500');
+        enemyHealthBar.classList.add('bg-red-700');
+      } else if (enemyHealthPercent <= 50) {
+        enemyHealthBar.classList.remove('bg-red-500', 'bg-red-700');
+        enemyHealthBar.classList.add('bg-yellow-500');
+      } else {
+        enemyHealthBar.classList.remove('bg-yellow-500', 'bg-red-700');
+        enemyHealthBar.classList.add('bg-red-500');
+      }
+    }
+    
+    // 更新技能按钮状态
+    function updateSkillButtons() {
+      // 技能1
+      const skill1CooldownText = skill1Btn.querySelector('div:last-child');
+      skill1CooldownText.textContent = `冷却: ${gameState.skills.skill1.currentCooldown}`;
+      skill1Btn.disabled = gameState.skills.skill1.currentCooldown > 0 || !gameState.isPlayerTurn || !gameState.isBattleActive;
+      
+      // 技能2
+      const skill2CooldownText = skill2Btn.querySelector('div:last-child');
+      skill2CooldownText.textContent = `冷却: ${gameState.skills.skill2.currentCooldown}`;
+      skill2Btn.disabled = gameState.skills.skill2.currentCooldown > 0 || !gameState.isPlayerTurn || !gameState.isBattleActive;
+      
+      // 基础攻击
+      basicAttackBtn.disabled = !gameState.isPlayerTurn || !gameState.isBattleActive;
+    }
+    
+    // 更新计时器显示
+    function updateTimerDisplay() {
+      timerDisplay.textContent = gameState.timer;
+      
+      // 根据剩余时间改变颜色
+      if (gameState.timer <= 30) {
+        timerDisplay.classList.add('text-red-500');
+        timerDisplay.classList.remove('text-yellow-500', 'text-white');
+      } else if (gameState.timer <= 60) {
+        timerDisplay.classList.add('text-yellow-500');
+        timerDisplay.classList.remove('text-red-500', 'text-white');
+      } else {
+        timerDisplay.classList.add('text-white');
+        timerDisplay.classList.remove('text-red-500', 'text-yellow-500');
+      }
+    }
+    
+    // 开始计时器
+    function startTimer() {
+      // 清除之前的计时器
+      if (gameState.timerInterval) {
+        clearInterval(gameState.timerInterval);
+      }
+      
+      // 设置新的计时器
+      gameState.timerInterval = setInterval(() => {
+        gameState.timer--;
+        updateTimerDisplay();
+        
+        // 时间结束，玩家失败
+        if (gameState.timer <= 0) {
+          clearInterval(gameState.timerInterval);
+          timeUp();
+        }
+      }, 1000);
+    }
+    
+    // 重置计时器
+    function resetTimer() {
+      clearInterval(gameState.timerInterval);
+      gameState.timer = gameState.maxTimer;
+      updateTimerDisplay();
+    }
+    
+    // 时间结束处理
+    function timeUp() {
+      if (!gameState.isBattleActive) return;
+      
+      gameState.isBattleActive = false;
+      addBattleLog('时间到！你未能在规定时间内击败敌人！');
+      
+      // 玩家被击败动画
+      playerCharacter.classList.add('animate-defeat');
+      
+      // 显示游戏失败模态框
+      setTimeout(() => {
+        gameOverModal.classList.remove('hidden');
+      }, 1500);
+    }
+    
+    // 添加战斗日志
+    function addBattleLog(message) {
+      const logEntry = document.createElement('div');
+      logEntry.className = 'animate-fade-in';
+      logEntry.innerHTML = message;
+      battleLog.appendChild(logEntry);
+      
+      // 自动滚动到底部
+      battleLog.scrollTop = battleLog.scrollHeight;
+      
+      // 限制日志条目数量
+      if (battleLog.children.length > 10) {
+        battleLog.removeChild(battleLog.firstChild);
+      }
+    }
+    
+    // 显示浮动文字（伤害/治疗）
+    function showFloatingText(element, text, type) {
+      const floatingText = document.createElement('div');
+      floatingText.className = `floating-text ${type === 'damage' ? 'damage-text' : 'heal-text'} animate-float-up`;
+      floatingText.textContent = text;
+      
+      // 随机位置偏移
+      const offsetX = Math.random() * 20 - 10;
+      const offsetY = Math.random() * 10 - 5;
+      floatingText.style.left = `${50 + offsetX}%`;
+      floatingText.style.top = `${50 + offsetY}%`;
+      
+      element.appendChild(floatingText);
+      
+      // 动画结束后移除
+      setTimeout(() => {
+        floatingText.remove();
+      }, 3000);
+    }
+    
+    // 玩家使用技能
+    function useSkill(skillId) {
+      if (!gameState.isPlayerTurn || !gameState.isBattleActive) return;
+      
+      const skill = gameState.skills[skillId];
+      
+      // 检查冷却
+      if (skill.currentCooldown > 0) {
+        addBattleLog(`技能 ${skill.name} 正在冷却中！`);
+        return;
+      }
+      
+      // 设置冷却
+      skill.currentCooldown = skill.cooldown;
+      
+      // 玩家攻击动画
+      playerCharacter.classList.add('animate-attack');
+      setTimeout(() => {
+        playerCharacter.classList.remove('animate-attack');
+      }, 500);
+      
+      // 敌人受击动画
+      enemyCharacter.classList.add('animate-hurt');
+      setTimeout(() => {
+        enemyCharacter.classList.remove('animate-hurt');
+      }, 300);
+      
+      // 计算伤害
+      let damage = skill.damage;
+      
+      // 应用技能特效
+      if (skill.effect === 'reduceSpeed') {
+        gameState.enemy.speed = Math.max(70, gameState.enemy.speed * 0.7); // 降低30%速度
+        addBattleLog(`你使用了 <span class="text-primary">${skill.name}</span>，对 <span class="text-red-400">${gameState.enemy.name}</span> 造成了 ${damage} 点伤害，并降低了其速度！`);
+      } else if (skill.effect === 'precision') {
+        damage = Math.floor(damage * (Math.random() * 0.2 + 0.9)); // 90%-110%伤害
+        addBattleLog(`你使用了 <span class="text-primary">${skill.name}</span>，精准打击了 <span class="text-red-400">${gameState.enemy.name}</span> 的弱点，造成了 ${damage} 点伤害！`);
+      } else {
+        addBattleLog(`你使用了 <span class="text-primary">${skill.name}</span>，对 <span class="text-red-400">${gameState.enemy.name}</span> 造成了 ${damage} 点伤害！`);
+      }
+      
+      // 显示伤害文字
+      showFloatingText(enemyCharacter, `-${damage}`, 'damage');
+      
+      // 扣除敌人血量
+      gameState.enemy.health = Math.max(0, gameState.enemy.health - damage);
+      
+      // 更新UI
+      updateHealthBars();
+      updateSkillButtons();
+      
+      // 检查敌人是否被击败
+      if (gameState.enemy.health <= 0) {
+        enemyDefeated();
+        return;
+      }
+      
+      // 切换回合
+      gameState.isPlayerTurn = false;
+      
+      // 敌人反击
+      setTimeout(enemyTurn, 1000 + (110 - gameState.enemy.speed) * 10);
+    }
+    
+    // 基础攻击
+    function basicAttack() {
+      if (!gameState.isPlayerTurn || !gameState.isBattleActive) return;
+      
+      // 玩家攻击动画
+      playerCharacter.classList.add('animate-attack');
+      setTimeout(() => {
+        playerCharacter.classList.remove('animate-attack');
+      }, 500);
+      
+      // 敌人受击动画
+      enemyCharacter.classList.add('animate-hurt');
+      setTimeout(() => {
+        enemyCharacter.classList.remove('animate-hurt');
+      }, 300);
+      
+      // 计算伤害
+      const damage = 50;
+      
+      addBattleLog(`你对 <span class="text-red-400">${gameState.enemy.name}</span> 进行了基础攻击，造成了 ${damage} 点伤害！`);
+      
+      // 显示伤害文字
+      showFloatingText(enemyCharacter, `-${damage}`, 'damage');
+      
+      // 扣除敌人血量
+      gameState.enemy.health = Math.max(0, gameState.enemy.health - damage);
+      
+      // 更新UI
+      updateHealthBars();
+      
+      // 检查敌人是否被击败
+      if (gameState.enemy.health <= 0) {
+        enemyDefeated();
+        return;
+      }
+      
+      // 切换回合
+      gameState.isPlayerTurn = false;
+      
+      // 敌人反击
+      setTimeout(enemyTurn, 1000 + (110 - gameState.enemy.speed) * 10);
+    }
+    
+    // 敌人回合
+    function enemyTurn() {
+      if (gameState.isPlayerTurn || !gameState.isBattleActive) return;
+      
+      // 敌人攻击动画
+      enemyCharacter.classList.add('animate-attack');
+      setTimeout(() => {
+        enemyCharacter.classList.remove('animate-attack');
+      }, 500);
+      
+      // 玩家受击动画
+      playerCharacter.classList.add('animate-hurt');
+      setTimeout(() => {
+        playerCharacter.classList.remove('animate-hurt');
+      }, 300);
+      
+      // 计算伤害
+      const damage = gameState.enemy.attackPower;
+      
+      addBattleLog(`<span class="text-red-400">${gameState.enemy.name}</span> 对你进行了攻击，造成了 ${damage} 点伤害！`);
+      
+      // 显示伤害文字
+      showFloatingText(playerCharacter, `-${damage}`, 'damage');
+      
+      // 扣除玩家血量
+      gameState.player.health = Math.max(0, gameState.player.health - damage);
+      
+      // 更新UI
+      updateHealthBars();
+      
+      // 检查玩家是否被击败
+      if (gameState.player.health <= 0) {
+        playerDefeated();
+        return;
+      }
+      
+      // 切换回合
+      gameState.isPlayerTurn = true;
+      
+      // 减少技能冷却
+      Object.values(gameState.skills).forEach(skill => {
+        if (skill.currentCooldown > 0) {
+          skill.currentCooldown--;
+        }
+      });
+      
+      // 更新技能按钮
+      updateSkillButtons();
+      
+      addBattleLog('轮到你的回合！');
+    }
+    
+    // 敌人被击败
+    function enemyDefeated() {
+      gameState.isBattleActive = false;
+      clearInterval(gameState.timerInterval);
+      
+      // 敌人被击败动画
+      enemyCharacter.classList.add('animate-defeat');
+      
+      addBattleLog(`你击败了 <span class="text-red-400">${gameState.enemy.name}</span>！`);
+      
+      // 检查是否通关所有关卡
+      if (gameState.currentLevel >= gameState.maxLevel) {
+        // 显示关卡完成模态框
+        setTimeout(() => {
+          levelCompleteModal.classList.remove('hidden');
+        }, 1500);
+      } else {
+        // 进入下一关
+        setTimeout(() => {
+          nextLevel();
+        }, 1500);
+      }
+    }
+    
+    // 玩家被击败
+    function playerDefeated() {
+      gameState.isBattleActive = false;
+      clearInterval(gameState.timerInterval);
+      
+      // 玩家被击败动画
+      playerCharacter.classList.add('animate-defeat');
+      
+      addBattleLog(`你被 <span class="text-red-400">${gameState.enemy.name}</span> 击败了！`);
+      
+      // 显示游戏失败模态框
+      setTimeout(() => {
+        gameOverModal.classList.remove('hidden');
+      }, 1500);
+    }
+    
+    // 进入下一关
+    function nextLevel() {
+      gameState.currentLevel++;
+      currentLevelDisplay.textContent = `第 ${gameState.currentLevel} 关`;
+      
+      // 重置计时器
+      resetTimer();
+      
+      // 恢复玩家血量
+      gameState.player.health = gameState.player.maxHealth;
+      
+      // 重置技能冷却
+      Object.values(gameState.skills).forEach(skill => {
+        skill.currentCooldown = 0;
+      });
+      
+      // 设置新敌人
+      const enemyType = gameState.enemyTypes[Math.min(gameState.currentLevel - 1, gameState.enemyTypes.length - 1)];
+      gameState.enemy = {
+        name: enemyType.name,
+        health: enemyType.health,
+        maxHealth: enemyType.health,
+        attackPower: enemyType.attackPower,
+        speed: 100,
+        image: enemyType.image
+      };
+      
+      // 更新敌人显示
+      enemyName.textContent = gameState.enemy.name;
+      enemyImage.src = gameState.enemy.image;
+      
+      // 重置动画类
+      enemyCharacter.classList.remove('animate-defeat');
+      playerCharacter.classList.remove('animate-defeat');
+      
+      // 更新UI
+      updateHealthBars();
+      updateSkillButtons();
+      
+      // 重新开始战斗
+      gameState.isBattleActive = true;
+      gameState.isPlayerTurn = true;
+      
+      // 开始计时
+      startTimer();
+      
+      addBattleLog(`--- 第 ${gameState.currentLevel} 关开始 ---`);
+      addBattleLog(`你遇到了 <span class="text-red-400">${gameState.enemy.name}</span>！`);
+    }
+    
+    // 重试当前关卡
+    function retryLevel() {
+      // 重置计时器
+      resetTimer();
+      // 恢复玩家血量
+      gameState.player.health = gameState.player.maxHealth;
+      
+      // 重置技能冷却
+      Object.values(gameState.skills).forEach(skill => {
+        skill.currentCooldown = 0;
+      });
+      
+      // 重置敌人
+      const enemyType = gameState.enemyTypes[Math.min(gameState.currentLevel - 1, gameState.enemyTypes.length - 1)];
+      gameState.enemy = {
+        name: enemyType.name,
+        health: enemyType.health,
+        maxHealth: enemyType.health,
+        attackPower: enemyType.attackPower,
+        speed: 100,
+        image: enemyType.image
+      };
+      
+      // 更新敌人显示
+      enemyName.textContent = gameState.enemy.name;
+      enemyImage.src = gameState.enemy.image;
+      
+      // 重置动画类
+      enemyCharacter.classList.remove('animate-defeat');
+      playerCharacter.classList.remove('animate-defeat');
+      
+      // 更新UI
+      updateHealthBars();
+      updateSkillButtons();
+      
+      // 重新开始战斗
+      gameState.isBattleActive = true;
+      gameState.isPlayerTurn = true;
+      
+      // 清空日志
+      battleLog.innerHTML = '';
+      addBattleLog(`--- 第 ${gameState.currentLevel} 关重试 ---`);
+      addBattleLog(`你遇到了 <span class="text-red-400">${gameState.enemy.name}</span>！`);
+      
+      // 隐藏模态框
+      gameOverModal.classList.add('hidden');
+    }
+    
+    // 返回主页
+    function backToHome() {
+      // 更新用户进度
+      const userKey = localStorage.getItem('userKey');
+      if (userKey) {
+        try {
+          // 解析秘钥
+          let cleanKey = '';
+          const base64Chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/';
+          for (let char of userKey) {
+            if (base64Chars.includes(char)) {
+              cleanKey += char;
+            }
+          }
+          const reversedKey = cleanKey.split('').reverse().join('');
+          const paddedKey = reversedKey + '='.repeat((4 - reversedKey.length % 4) % 4);
+          const decodedString = atob(paddedKey);
+          const [username, timestamp, levelProgress] = decodedString.split('|');
+          
+          // 如果通关了CSP-J，解锁CSP-S
+          if (gameState.currentLevel >= gameState.maxLevel) {
+            const newLevelProgress = '110000'; // 解锁前两关
+            const newUserData = `${username}|${timestamp}|${newLevelProgress}`;
+            let newKey = btoa(newUserData)
+              .replace(/=/g, '')
+              .split('')
+              .reverse()
+              .join('');
+            const randomChars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
+            for (let i = 0; i < 5; i++) {
+              const position = Math.floor(Math.random() * newKey.length);
+              const randomChar = randomChars[Math.floor(Math.random() * randomChars.length)];
+              newKey = newKey.slice(0, position) + randomChar + newKey.slice(position);
+            }
+            localStorage.setItem('userKey', newKey);
+          }
+        } catch (error) {
+          console.error('更新进度失败:', error);
+        }
+      }
+      
+      // 返回主页
+      window.location.href = '../index.html';
+    }
+    
+    // 事件监听器
+    document.addEventListener('DOMContentLoaded', () => {
+      // 初始化UI
+      updateHealthBars();
+      updateSkillButtons();
+      updateTimerDisplay();
+      
+      // 开始计时
+      startTimer();
+      
+      // 技能按钮点击
+      skill1Btn.addEventListener('click', () => useSkill('skill1'));
+      skill2Btn.addEventListener('click', () => useSkill('skill2'));
+      basicAttackBtn.addEventListener('click', basicAttack);
+      
+      // 返回主页按钮
+      backToHomeBtn.addEventListener('click', backToHome);
+      backToHomeFromCompleteBtn.addEventListener('click', backToHome);
+      backToHomeFromOverBtn.addEventListener('click', backToHome);
+      
+      // 下一关按钮
+      nextLevelBtn.addEventListener('click', () => {
+        levelCompleteModal.classList.add('hidden');
+        // 这里应该跳转到CSP-S关卡，但目前先返回主页
+        backToHome();
+      });
+      
+      // 重试按钮
+      retryBtn.addEventListener('click', retryLevel);
+      
+      // 防代码窃取 - 禁用右键菜单
+      document.addEventListener('contextmenu', (e) => {
+        e.preventDefault();
+        return false;
+      });
+      
+      // 防代码窃取 - 禁用Ctrl键组合
+      document.addEventListener('keydown', (e) => {
+        // 禁用Ctrl+C, Ctrl+V, Ctrl+X, Ctrl+U, Ctrl+S
+        if ((e.ctrlKey || e.metaKey) && ['c', 'v', 'x', 'u', 's'].includes(e.key.toLowerCase())) {
+          e.preventDefault();
+          return false;
+        }
+        
+        // 禁用F12, Ctrl+Shift+I, Ctrl+Shift+J
+        if (e.key === 'F12' || (e.ctrlKey && e.shiftKey && ['i', 'j'].includes(e.key.toLowerCase()))) {
+          e.preventDefault();
+          return false;
+        }
+      });
+    });
+  </script>
+</body>
+</html>
