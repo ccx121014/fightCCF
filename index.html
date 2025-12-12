@@ -648,11 +648,9 @@
         
         if (!level.locked) {
           levelCard.addEventListener('click', () => {
-            // 如果是第一关（CSP-J），模拟进入关卡
+            // 如果是第一关（CSP-J），跳转到对应关卡页面
             if (level.id === 'cspj') {
-              // 这里可以添加实际的关卡逻辑
-              // 目前显示未开发提示
-              notDevelopedModal.classList.remove('hidden');
+              window.location.href = 'levels/cspj.html';
             } else {
               // 其他关卡显示未开发提示
               notDevelopedModal.classList.remove('hidden');
