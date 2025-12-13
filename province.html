@@ -26,10 +26,20 @@
             font-family: 'Orbitron', sans-serif;
         }
 
-        .bg-main {
-            background-image: url('https://p3-flow-imagex-sign.byteimg.com/tos-cn-i-a9rns2rl98/rc/pc/super_tool/41616788d22f4882b4a2eb7a4f5d7f23~tplv-a9rns2rl98-image.image?rcl=20251213131030A8FD11621FC82FEA2AB2&rk3s=8e244e95&rrcfp=f06b921b&x-expires=1768194644&x-signature=e4JsupuRQfmYmOxsH9Bn1ibkGlI%3D');
-            background-size: cover;
-            background-position: center;
+        .game-bg {
+            background: #000;
+            position: relative;
+            overflow: hidden;
+        }
+
+        #digitalRain {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: -1;
+            opacity: 0.3;
         }
 
         .glass {
@@ -39,7 +49,181 @@
         }
 
         .glow-text {
-            text-shadow: 0 0 10px #00ffff, 0 0 20px #00ffff, 0 0 30px #00ffff;
+            text-shadow: 0 0 10px #ff6b00, 0 0 20px #ff6b00, 0 0 30px #ff6b00;
+        }
+
+        .health-bar {
+            height: 20px;
+            background: rgba(0, 0, 0, 0.7);
+            border-radius: 10px;
+            overflow: hidden;
+            border: 2px solid #fff;
+        }
+
+        .health-fill {
+            height: 100%;
+            background: linear-gradient(90deg, #ff0000, #ff6b6b);
+            transition: width 0.3s ease;
+            border-radius: 8px;
+        }
+
+        .timer {
+            font-size: 2rem;
+            font-weight: bold;
+            text-shadow: 0 0 10px #ff6b00;
+        }
+
+        .skill-btn {
+            transition: all 0.2s ease;
+            cursor: pointer;
+            position: relative;
+        }
+
+        .skill-btn:hover {
+            transform: scale(1.1);
+        }
+
+        .skill-btn.cooldown {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+
+        .skill-btn .cooldown-overlay {
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            width: 100%;
+            background: rgba(0, 0, 0, 0.7);
+            transition: height 0.1s linear;
+        }
+
+        .key-hint {
+            position: absolute;
+            bottom: -25px;
+            left: 50%;
+            transform: translateX(-50%);
+            font-size: 0.75rem;
+            color: #aaa;
+            font-weight: bold;
+        }
+
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.8);
+            z-index: 1000;
+            backdrop-filter: blur(5px);
+        }
+
+        .modal.active {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .modal-content {
+            background: rgba(0, 0, 0, 0.9);
+            border: 2px solid #ff6b00;
+            border-radius: 15px;
+            padding: 2rem;
+            text-align: center;
+            max-width: 400px;
+            width: 90%;
+            box-shadow: 0 0 30px rgba(255, 107, 0, 0.3);
+        }
+
+        .damage-text {
+            position: absolute;
+            color: #ff0000;
+            font-weight: bold;
+            font-size: 1.2rem;
+            pointer-events: none;
+            animation: damageFloat 1s ease-out forwards;
+            text-shadow: 0 0 10px #ff0000;
+        }
+
+        .hit-effect {
+            position: absolute;
+            width: 40px;
+            height: 40px;
+            background: radial-gradient(circle, #ff6b00, transparent);
+            border-radius: 50%;
+            pointer-events: none;
+            animation: hitExpand 0.5s ease-out forwards;
+        }
+
+        .skill-effect {
+            position: absolute;
+            pointer-events: none;
+            z-index: 100;
+        }
+
+        .combo-display {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            font-size: 3rem;
+            font-weight: bold;
+            color: #ffd700;
+            text-shadow: 0 0 20px #ffd700;
+            opacity: 0;
+            transition: opacity 0.3s ease;
+        }
+
+        .combo-display.visible {
+            opacity: 1;
+        }
+
+        .buff-icon {
+            position: absolute;
+            top: 100px;
+            right: 50px;
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+
+        .buff-item {
+            background: rgba(255, 107, 0, 0.2);
+            border: 1px solid #ff6b00;
+            border-radius: 8px;
+            padding: 8px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 0.875rem;
+        }
+
+        .buff-duration {
+            font-size: 0.75rem;
+            color: #ff6b00;
+        }
+
+        @keyframes damageFloat {
+            0% {
+                opacity: 1;
+                transform: translateY(0);
+            }
+            100% {
+                opacity: 0;
+                transform: translateY(-50px);
+            }
+        }
+
+        @keyframes hitExpand {
+            0% {
+                transform: scale(0);
+                opacity: 1;
+            }
+            100% {
+                transform: scale(3);
+                opacity: 0;
+            }
         }
 
         .floating {
@@ -62,8 +246,8 @@
             border-radius: 15px;
             z-index: 2000;
             text-align: center;
-            border: 2px solid #00ffff;
-            box-shadow: 0 0 30px rgba(0, 255, 255, 0.5);
+            border: 2px solid #ff6b6b0;
+            box-shadow: 0 0 30px rgba(255, 107, 0, 0.5);
         }
 
         .btn {
@@ -89,44 +273,1393 @@
 
         .btn:hover {
             transform: translateY(-2px);
-            box-shadow: 0 10px 20px rgba(0, 255, 255, 0.4);
+            box-shadow: 0 10px 20px rgba(255, 107, 0, 0.4);
+        }
+
+        .enemy-projectile {
+            position: absolute;
+            width: 30px;
+            height: 30px;
+            background: radial-gradient(circle, #ff0000, #ff6b00);
+            border-radius: 50%;
+            pointer-events: none;
+            z-index: 50;
+        }
+
+        .player-projectile {
+            position: absolute;
+            width: 20px;
+            height: 20px;
+            background: radial-gradient(circle, #00ffff, #0080ff);
+            border-radius: 50%;
+            pointer-events: none;
+            z-index: 50;
         }
     </style>
 </head>
 <body class="bg-main h-screen flex items-center justify-center">
-    <div class="notification">
-        <div class="floating mb-6">
-            <i data-lucide="code-2" class="w-24 h-24 mx-auto text-cyan-400"></i>
+    <!-- 游戏画布 -->
+    <canvas id="digitalRain"></canvas>
+    <canvas id="gameCanvas" class="absolute top-0 left-0 w-full h-full"></canvas>
+
+    <!-- HUD界面 -->
+    <div class="hud p-6">
+        <!-- 顶部信息栏 -->
+        <div class="flex justify-between items-center mb-6">
+            <div class="flex items-center space-x-4">
+                <button id="backBtn" class="glass p-3 rounded-lg hover:bg-white/20 transition-colors">
+                    <i data-lucide="arrow-left" class="w-6 h-6"></i>
+                </button>
+                <div>
+                    <p class="text-sm text-gray-300">关卡</p>
+                    <p class="orbitron font-bold text-xl" id="currentLevel">省选 - 算法之神</p>
+                </div>
+            </div>
+            <div class="timer orbitron" id="timer">300</div>
+            <div class="text-right">
+                <p class="text-sm text-gray-300">得分</p>
+                <p class="orbitron font-bold text-xl" id="score">0</p>
+            </div>
         </div>
-        <h2 class="text-3xl font-bold mb-4 orbitron glow-text">章节开发中</h2>
-        <p class="text-xl mb-8">省选 章节尚未开发完成</p>
-        <p class="text-gray-400 mb-6">正在努力开发中，敬请期待...</p>
-        <button id="backBtn" class="btn bg-cyan-600 hover:bg-cyan-700 text-white py-3 px-8 rounded-lg font-medium orbitron">
-            返回主页
-        </button>
+
+        <!-- 血量条 -->
+        <div class="flex justify-between items-center mb-8">
+            <div class="w-1/3">
+                <div class="flex justify-between mb-2">
+                    <span class="orbitron" id="playerName">省选选手</span>
+                    <span class="orbitron" id="playerHealth">100%</span>
+                </div>
+                <div class="health-bar">
+                    <div class="health-fill" id="playerHealthBar" style="width: 100%"></div>
+                </div>
+            </div>
+            <div class="w-1/3">
+                <div class="flex justify-between mb-2">
+                    <span class="orbitron" id="enemyName">算法之神</span>
+                    <span class="orbitron" id="enemyHealth">800%</span>
+                </div>
+                <div class="health-bar">
+                    <div class="health-fill" id="enemyHealthBar" style="width: 100%"></div>
+                </div>
+            </div>
+        </div>
+
+        <!-- 技能按钮 -->
+        <div class="fixed bottom-8 left-1/2 transform -translate-x-1/2 flex space-x-6">
+            <div class="skill-btn glass rounded-full w-16 h-16 flex items-center justify-center relative">
+                <i data-lucide="zap" class="w-8 h-8 text-yellow-400"></i>
+                <div class="cooldown-overlay"></div>
+                <div class="key-hint">J</div>
+            </div>
+            <div class="skill-btn glass rounded-full w-16 h-16 flex items-center justify-center relative">
+                <i data-lucide="sword" class="w-8 h-8 text-red-400"></i>
+                <div class="cooldown-overlay"></div>
+                <div class="key-hint">K</div>
+            </div>
+            <div class="skill-btn glass rounded-full w-16 h-16 flex items-center justify-center relative">
+                <i data-lucide="star" class="w-8 h-8 text-purple-400"></i>
+                <div class="cooldown-overlay"></div>
+                <div class="key-hint">L</div>
+            </div>
+            <div class="skill-btn glass rounded-full w-16 h-16 flex items-center justify-center relative">
+                <i data-lucide="shield" class="w-8 h-8 text-blue-400"></i>
+                <div class="cooldown-overlay"></div>
+                <div class="key-hint">U</div>
+            </div>
+            <div class="skill-btn glass rounded-full w-16 h-16 flex items-center justify-center relative">
+                <i data-lucide="bomb" class="w-8 h-8 text-orange-400"></i>
+                <div class="cooldown-overlay"></div>
+                <div class="key-hint">O</div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 连击显示 -->
+    <div class="combo-display" id="comboDisplay">
+        <div id="comboCount">0</div>
+        <div class="text-sm">连击</div>
+    </div>
+
+    <!-- 增益效果显示 -->
+    <div class="buff-icon" id="buffIcons"></div>
+
+    <!-- 游戏结束模态框 -->
+    <div class="modal" id="gameOverModal">
+        <div class="modal-content">
+            <i data-lucide="x-circle" class="w-24 h-24 mx-auto text-red-500 mb-4"></i>
+            <h2 class="text-2xl font-bold mb-2">游戏结束</h2>
+            <p class="text-gray-300 mb-4">你被算法之神击败了...</p>
+            <div class="glass rounded-lg p-4 mb-6">
+                <p class="text-sm text-gray-400">最终得分</p>
+                <p class="text-3xl font-bold orbitron" id="finalScore">0</p>
+            </div>
+            <div class="flex space-x-4">
+                <button id="retryBtn" class="btn flex-1 bg-yellow-600 hover:bg-yellow-700 text-white py-3 rounded-lg font-medium orbitron">
+                    重试
+                </button>
+                <button id="homeBtn" class="btn flex-1 bg-blue-600 hover:bg-blue-700 text-white py-3 rounded-lg font-medium orbitron">
+                    返回主页
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- 胜利模态框 -->
+    <div class="modal" id="victoryModal">
+        <div class="modal-content">
+            <i data-lucide="trophy" class="w-24 h-24 mx-auto text-yellow-400 mb-4"></i>
+            <h2 class="text-2xl font-bold mb-2">胜利！</h2>
+            <p class="text-lg">你成功击败了算法之神！</p>
+            <div class="glass rounded-lg p-4 mb-6">
+                <p class="text-sm text-gray-400">最终得分</p>
+                <p class="text-3xl font-bold orbitron" id="victoryScore">0</p>
+            </div>
+            <div class="glass rounded-lg p-4 mb-6">
+                <p class="text-cyan-400 font-semibold">解锁成就</p>
+                <p class="text-sm text-gray-300">省选大师 - 掌握了省选级别的算法</p>
+            </div>
+            <div class="flex space-x-4">
+                <button id="nextLevelBtn" class="btn flex-1 bg-green-600 hover:bg-green-700 text-white py-3 rounded-lg font-medium orbitron">
+                    下一关
+                </button>
+                <button id="victoryHomeBtn" class="btn flex-1 bg-blue-600 hover:bg-blue-700 text-white py-3 rounded-lg font-medium orbitron">
+                    返回主页
+                </button>
+            </div>
+        </div>
     </div>
 
     <script>
+        // 数字雨效果
+        function initDigitalRain() {
+            const canvas = document.getElementById('digitalRain');
+            const ctx = canvas.getContext('2d');
+            
+            canvas.width = window.innerWidth;
+            canvas.height = window.innerHeight;
+            
+            const characters = '01';
+            const fontSize = 14;
+            const columns = canvas.width / fontSize;
+            
+            const drops = [];
+            for (let i = 0; i < columns; i++) {
+                drops[i] = Math.random() * -100;
+            }
+            
+            function draw() {
+                ctx.fillStyle = 'rgba(0, 0, 0, 0.05)';
+                ctx.fillRect(0, 0, canvas.width, canvas.height);
+                
+                ctx.fillStyle = '#ff6b00';
+                ctx.font = fontSize + 'px monospace';
+                
+                for (let i = 0; i < drops.length; i++) {
+                    const text = characters.charAt(Math.floor(Math.random() * characters.length));
+                    ctx.fillText(text, i * fontSize, drops[i] * fontSize);
+                    
+                    if (drops[i] * fontSize > canvas.height && Math.random() > 0.975) {
+                        drops[i] = 0;
+                    }
+                    drops[i]++;
+                }
+            }
+            
+            setInterval(draw, 33);
+            
+            window.addEventListener('resize', () => {
+                canvas.width = window.innerWidth;
+                canvas.height = window.innerHeight;
+            });
+        }
+
         // 初始化Lucide图标
         lucide.createIcons();
+        
+        // 初始化数字雨
+        initDigitalRain();
 
-        // 返回主页
-        document.getElementById('backBtn').addEventListener('click', function() {
-            window.location.href = 'index.html?return=true';
+        // 游戏数据
+        let gameData = {
+            player: {
+                name: '省选选手',
+                health: 100,
+                maxHealth: 100,
+                x: 300,
+                y: 400,
+                width: 80,
+                height: 120,
+                speed: 10,
+                isAttacking: false,
+                isDefending: false,
+                direction: 'right',
+                animationFrame: 0,
+                state: 'idle', // idle, running, attacking, hit, skill1, skill2, skill3, skill4, skill5, defending
+                buffs: [], // 增益效果
+                projectiles: [] // 玩家投射物
+            },
+            enemy: {
+                name: '算法之神',
+                health: 800,
+                maxHealth: 800,
+                x: 800,
+                y: 350,
+                width: 180,
+                height: 250,
+                speed: 6,
+                isAttacking: false,
+                direction: 'left',
+                animationFrame: 0,
+                state: 'idle',
+                attackPattern: 0,
+                lastAttackTime: 0,
+                phase: 1, // 1: 普通阶段, 2: 狂暴阶段, 3: 终极阶段
+                projectiles: [], // 敌人投射物
+                summonCount: 0 // 召唤的小怪数量
+            },
+            game: {
+                score: 0,
+                time: 300,
+                isRunning: true,
+                level: '省选 - 算法之神',
+                keys: {},
+                skillCooldowns: {
+                    skill1: 0,
+                    skill2: 0,
+                    skill3: 0,
+                    skill4: 0,
+                    skill5: 0
+                },
+                combo: 0,
+                maxCombo: 0,
+                lastDamageTime: 0,
+                minions: [] // 小怪
+            }
+        };
+
+        // 游戏画布
+        const canvas = document.getElementById('gameCanvas');
+        const ctx = canvas.getContext('2d');
+        canvas.width = window.innerWidth;
+        canvas.height = window.innerHeight;
+
+        // 创建伤害文本
+        function createDamageText(x, y, damage, isCritical = false) {
+            const damageEl = document.createElement('div');
+            damageEl.className = 'damage-text';
+            damageEl.textContent = isCritical ? `暴击! ${damage}` : damage;
+            damageEl.style.left = x + 'px';
+            damageEl.style.top = y + 'px';
+            if (isCritical) {
+                damageEl.style.color = '#ff00ff';
+                damageEl.style.fontSize = '1.5rem';
+            }
+            document.body.appendChild(damageEl);
+            
+            setTimeout(() => {
+                if (document.body.contains(damageEl)) {
+                    document.body.removeChild(damageEl);
+                }
+            }, 1000);
+        }
+
+        // 创建击中效果
+        function createHitEffect(x, y, color = '#ff6b00') {
+            const effect = document.createElement('div');
+            effect.className = 'hit-effect';
+            effect.style.left = (x - 20) + 'px';
+            effect.style.top = (y - 20) + 'px';
+            effect.style.background = `radial-gradient(circle, ${color}, transparent)`;
+            document.body.appendChild(effect);
+            
+            setTimeout(() => {
+                if (document.body.contains(effect)) {
+                    document.body.removeChild(effect);
+                }
+            }, 500);
+        }
+
+        // 创建技能效果
+        function createSkillEffect(x, y, skillType) {
+            const effect = document.createElement('div');
+            effect.className = 'skill-effect';
+            
+            switch (skillType) {
+                case 'skill1':
+                    effect.innerHTML = '<i data-lucide="zap" class="w-32 h-32 text-yellow-400"></i>';
+                    break;
+                case 'skill2':
+                    effect.innerHTML = '<i data-lucide="sword" class="w-32 h-32 text-red-400"></i>';
+                    break;
+                case 'skill3':
+                    effect.innerHTML = '<i data-lucide="star" class="w-32 h-32 text-purple-400"></i>';
+                    break;
+                case 'skill4':
+                    effect.innerHTML = '<i data-lucide="shield" class="w-32 h-32 text-blue-400"></i>';
+                    break;
+                case 'skill5':
+                    effect.innerHTML = '<i data-lucide="bomb" class="w-40 h-40 text-orange-400"></i>';
+                    break;
+            }
+            
+            effect.style.left = (x - 64) + 'px';
+            effect.style.top = (y - 64) + 'px';
+            document.body.appendChild(effect);
+            lucide.createIcons();
+            
+            setTimeout(() => {
+                if (document.body.contains(effect)) {
+                    document.body.removeChild(effect);
+                }
+            }, 800);
+        }
+
+        // 创建投射物
+        function createProjectile(x, y, direction, isPlayer = true) {
+            const projectile = document.createElement('div');
+            projectile.className = isPlayer ? 'player-projectile' : 'enemy-projectile';
+            projectile.style.left = x + 'px';
+            projectile.style.top = y + 'px';
+            document.body.appendChild(projectile);
+            
+            const speed = isPlayer ? 15 : 10;
+            const projectileData = {
+                element: projectile,
+                x: x,
+                y: y,
+                direction: direction,
+                speed: speed,
+                damage: isPlayer ? 20 : 15,
+                isPlayer: isPlayer
+            };
+            
+            if (isPlayer) {
+                gameData.player.projectiles.push(projectileData);
+            } else {
+                gameData.enemy.projectiles.push(projectileData);
+            }
+        }
+
+        // 检查碰撞
+        function checkCollision(rect1, rect2) {
+            return rect1.x < rect2.x + rect2.width &&
+                   rect1.x + rect1.width > rect2.x &&
+                   rect1.y < rect2.y + rect2.height &&
+                   rect1.y + rect1.height > rect2.y;
+        }
+
+        // 应用增益效果
+        function applyBuff(buffType, duration, value) {
+            const buff = {
+                type: buffType,
+                duration: duration,
+                value: value,
+                remainingTime: duration
+            };
+            
+            gameData.player.buffs.push(buff);
+            updateBuffDisplay();
+        }
+
+        // 更新增益效果显示
+        function updateBuffDisplay() {
+            const buffIcons = document.getElementById('buffIcons');
+            buffIcons.innerHTML = '';
+            
+            gameData.player.buffs.forEach(buff => {
+                const buffItem = document.createElement('div');
+                buffItem.className = 'buff-item';
+                
+                let icon = '';
+                let name = '';
+                
+                switch (buff.type) {
+                    case 'attack':
+                        icon = '<i data-lucide="sword" class="w-4 h-4 text-red-400"></i>';
+                        name = `攻击+${buff.value}%`;
+                        break;
+                    case 'speed':
+                        icon = '<i data-lucide="zap" class="w-4 h-4 text-yellow-400"></i>';
+                        name = `速度+${buff.value}%`;
+                        break;
+                    case 'defense':
+                        icon = '<i data-lucide="shield" class="w-4 h-4 text-blue-400"></i>';
+                        name = `防御+${buff.value}%`;
+                        break;
+                }
+                
+                buffItem.innerHTML = `
+                    ${icon}
+                    <div>
+                        <div>${name}</div>
+                        <div class="buff-duration">${Math.ceil(buff.remainingTime / 60)}s</div>
+                    </div>
+                `;
+                
+                buffIcons.appendChild(buffItem);
+            });
+            
+            lucide.createIcons();
+        }
+
+        // 绘制玩家
+        function drawPlayer(x, y, direction, state, frame) {
+            ctx.save();
+            
+            // 绘制玩家身体
+            ctx.fillStyle = '#00ffff';
+            
+            // 如果有攻击增益，改变颜色
+            const attackBuff = gameData.player.buffs.find(b => b.type === 'attack');
+            if (attackBuff) {
+                ctx.fillStyle = '#ff00ff';
+            }
+            
+            ctx.fillRect(x, y, gameData.player.width, gameData.player.height);
+            
+            // 绘制头部
+            ctx.fillStyle = '#ffffff';
+            ctx.fillRect(x + 20, y - 30, 40, 30);
+            
+            // 绘制眼睛
+            ctx.fillStyle = '#000000';
+            if (direction === 'right') {
+                ctx.fillRect(x + 50, y - 20, 5, 5);
+            } else {
+                ctx.fillRect(x + 25, y - 20, 5, 5);
+            }
+            
+            // 根据状态绘制特效
+            if (state === 'defending') {
+                ctx.strokeStyle = '#0000ff';
+                ctx.lineWidth = 5;
+                ctx.strokeRect(x - 10, y - 10, gameData.player.width + 20, gameData.player.height + 20);
+            }
+            
+            // 如果有速度增益，绘制特效
+            const speedBuff = gameData.player.buffs.find(b => b.type === 'speed');
+            if (speedBuff) {
+                ctx.strokeStyle = '#ffff00';
+                ctx.lineWidth = 3;
+                ctx.strokeRect(x - 5, y - 5, gameData.player.width + 10, gameData.player.height + 10);
+            }
+            
+            ctx.restore();
+        }
+
+        // 绘制敌人
+        function drawEnemy(x, y, direction, state, frame) {
+            ctx.save();
+            
+            // 根据阶段改变颜色
+            switch (gameData.enemy.phase) {
+                case 1:
+                    ctx.fillStyle = '#ff6b00';
+                    break;
+                case 2:
+                    ctx.fillStyle = '#ff0000';
+                    break;
+                case 3:
+                    ctx.fillStyle = '#ff00ff';
+                    break;
+            }
+            
+            // 绘制敌人身体
+            ctx.fillRect(x, y, gameData.enemy.width, gameData.enemy.height);
+            
+            // 绘制头部
+            ctx.fillStyle = '#ffffff';
+            ctx.fillRect(x + 45, y - 50, 90, 50);
+            
+            // 绘制眼睛
+            ctx.fillStyle = '#000000';
+            ctx.fillRect(x + 60, y - 35, 15, 15);
+            ctx.fillRect(x + 105, y - 35, 15, 15);
+            
+            // 绘制算法符号
+            ctx.fillStyle = '#ffff00';
+            ctx.font = '24px Arial';
+            ctx.fillText('算', x + 75, y + 60);
+            ctx.fillText('法', x + 75, y + 90);
+            
+            // 绘制光环
+            if (gameData.enemy.phase === 3) {
+                ctx.strokeStyle = '#ff00ff';
+                ctx.lineWidth = 8;
+                ctx.setLineDash([10, 5]);
+                ctx.strokeRect(x - 20, y - 20, gameData.enemy.width + 40, gameData.enemy.height + 40);
+            }
+            
+            ctx.restore();
+        }
+
+        // 绘制小怪
+        function drawMinion(x, y, type) {
+            ctx.save();
+            
+            switch (type) {
+                case 'sort':
+                    ctx.fillStyle = '#00ff00';
+                    break;
+                case 'search':
+                    ctx.fillStyle = '#00ffff';
+                    break;
+                case 'graph':
+                    ctx.fillStyle = '#ffff00';
+                    break;
+            }
+            
+            ctx.fillRect(x, y, 60, 80);
+            
+            // 绘制头部
+            ctx.fillStyle = '#ffffff';
+            ctx.fillRect(x + 15, y - 20, 30, 20);
+            
+            ctx.restore();
+        }
+
+        // 使用玩家技能
+        function usePlayerSkill(skillType) {
+            const { player, enemy, game } = gameData;
+            
+            if (player.isAttacking || player.state === 'hit') return false;
+            
+            player.isAttacking = true;
+            player.state = skillType;
+            
+            let damage = 0;
+            const attackBuff = player.buffs.find(b => b.type === 'attack');
+            const damageMultiplier = attackBuff ? (1 + attackBuff.value / 100) : 1;
+            
+            switch (skillType) {
+                case 'skill1': // 快速排序闪电
+                    game.skillCooldowns.skill1 = 240; // 4秒冷却
+                    damage = Math.floor((30 + Math.floor(Math.random() * 20)) * damageMultiplier);
+                    
+                    createSkillEffect(player.x, player.y - 100, 'skill1');
+                    
+                    // 发射多个闪电球
+                    for (let i = 0; i < 3; i++) {
+                        setTimeout(() => {
+                            createProjectile(
+                                player.direction === 'right' ? player.x + player.width : player.x,
+                                player.y + 30 + (i - 1) * 20,
+                                player.direction,
+                                true
+                            );
+                        }, i * 100);
+                    }
+                    
+                    game.score += damage;
+                    break;
+                    
+                case 'skill2': // 树状数组突刺
+                    game.skillCooldowns.skill2 = 360; // 6秒冷却
+                    damage = Math.floor((50 + Math.floor(Math.random() * 25)) * damageMultiplier);
+                    
+                    createSkillEffect(player.x, player.y - 100, 'skill2');
+                    
+                    const刺Range = {
+                        x: player.direction === 'right' ? player.x + player.width : player.x - 150,
+                        y: player.y - 50,
+                        width: 150,
+                        height: 100
+                    };
+                    
+                    if (checkCollision(刺Range, enemy)) {
+                        const isCritical = Math.random() < 0.3;
+                        const finalDamage = isCritical ? Math.floor(damage * 1.5) : damage;
+                        
+                        enemy.health -= finalDamage;
+                        enemy.state = 'hit';
+                        createDamageText(enemy.x, enemy.y - 50, finalDamage, isCritical);
+                        
+                        // 创建多个击中效果
+                        for (let i = 0; i < 8; i++) {
+                            setTimeout(() => {
+                                createHitEffect(enemy.x + Math.random() * 100 - 50, 
+                                               enemy.y + Math.random() * 100 - 50);
+                            }, i * 50);
+                        }
+                        
+                        game.score += finalDamage * 2;
+                        game.combo += isCritical ? 3 : 2;
+                    }
+                    break;
+                    
+                case 'skill3': // 动态规划之星
+                    game.skillCooldowns.skill3 = 600; // 10秒冷却
+                    damage = Math.floor((80 + Math.floor(Math.random() * 40)) * damageMultiplier);
+                    
+                    createSkillEffect(player.x, player.y - 150, 'skill3');
+                    
+                    // 范围攻击
+                    const radius = 200;
+                    const dx = enemy.x - player.x;
+                    const dy = enemy.y - player.y;
+                    const distance = Math.sqrt(dx * dx + dy * dy);
+                    
+                    if (distance < radius) {
+                        enemy.health -= damage;
+                        enemy.state = 'hit';
+                        createDamageText(enemy.x, enemy.y - 50, damage);
+                        
+                        // 创建大范围爆炸效果
+                        for (let i = 0; i < 12; i++) {
+                            setTimeout(() => {
+                                createHitEffect(enemy.x + Math.random() * 150 - 75, 
+                                               enemy.y + Math.random() * 150 - 75,
+                                               '#ff00ff');
+                            }, i * 30);
+                        }
+                        
+                        game.score += damage * 3;
+                        game.combo += 4;
+                        
+                        // 对小怪造成伤害
+                        game.minions.forEach(minion => {
+                            const minionDx = minion.x - player.x;
+                            const minionDy = minion.y - player.y;
+                            const minionDistance = Math.sqrt(minionDx * minionDx + minionDy * minionDy);
+                            
+                            if (minionDistance < radius) {
+                                minion.health -= Math.floor(damage * 0.5);
+                                createDamageText(minion.x, minion.y - 30, Math.floor(damage * 0.5));
+                            }
+                        });
+                    }
+                    
+                    // 给自己加增益效果
+                    applyBuff('attack', 180, 30); // 3秒攻击提升30%
+                    break;
+                    
+                case 'skill4': // 防御姿态
+                    game.skillCooldowns.skill4 = 480; // 8秒冷却
+                    player.isDefending = true;
+                    player.state = 'defending';
+                    
+                    createSkillEffect(player.x, player.y - 100, 'skill4');
+                    
+                    // 5秒防御时间，减少80%伤害
+                    applyBuff('defense', 300, 80);
+                    
+                    setTimeout(() => {
+                        player.isDefending = false;
+                        if (player.state === 'defending') {
+                            player.state = 'idle';
+                        }
+                    }, 5000);
+                    
+                    return true;
+                    
+                case 'skill5': // 终极算法爆炸
+                    game.skillCooldowns.skill5 = 900; // 15秒冷却
+                    damage = Math.floor((120 + Math.floor(Math.random() * 60)) * damageMultiplier);
+                    
+                    createSkillEffect(player.x, player.y - 200, 'skill5');
+                    
+                    // 全屏攻击
+                    enemy.health -= damage;
+                    enemy.state = 'hit';
+                    createDamageText(enemy.x, enemy.y - 50, damage, true);
+                    
+                    // 创建全屏爆炸效果
+                    for (let i = 0; i < 20; i++) {
+                        setTimeout(() => {
+                            createHitEffect(
+                                Math.random() * canvas.width,
+                                Math.random() * canvas.height,
+                                '#ff6b00'
+                            );
+                        }, i * 20);
+                    }
+                    
+                    game.score += damage * 5;
+                    game.combo += 10;
+                    
+                    // 清除所有敌人投射物
+                    gameData.enemy.projectiles.forEach(projectile => {
+                        if (document.body.contains(projectile.element)) {
+                            document.body.removeChild(projectile.element);
+                        }
+                    });
+                    gameData.enemy.projectiles = [];
+                    
+                    // 对所有小怪造成伤害
+                    game.minions.forEach(minion => {
+                        minion.health -= Math.floor(damage * 0.8);
+                        createDamageText(minion.x, minion.y - 30, Math.floor(damage * 0.8));
+                    });
+                    
+                    break;
+            }
+            
+            // 连击奖励
+            if (game.combo > game.maxCombo) {
+                game.maxCombo = game.combo;
+            }
+            if (game.combo > 5) {
+                game.score += Math.floor(damage * (game.combo / 5));
+            }
+            
+            // 重置玩家状态
+            setTimeout(() => {
+                player.isAttacking = false;
+                if (player.state === skillType) {
+                    player.state = 'idle';
+                }
+            }, 1000);
+            
+            return true;
+        }
+
+        // 敌人AI
+        function updateEnemyAI() {
+            const { enemy, player, game } = gameData;
+            const currentTime = Date.now();
+            
+            // 阶段转换
+            if (enemy.health < enemy.maxHealth * 0.6 && enemy.phase === 1) {
+                enemy.phase = 2;
+                enemy.speed += 3;
+                enemy.lastAttackTime = currentTime - 1000;
+            }
+            
+            if (enemy.health < enemy.maxHealth * 0.3 && enemy.phase === 2) {
+                enemy.phase = 3;
+                enemy.speed += 2;
+                enemy.lastAttackTime = currentTime - 500;
+            }
+            
+            // 攻击间隔根据阶段减少
+            const attackIntervals = [2000, 1500, 1000];
+            const attackInterval = attackIntervals[enemy.phase - 1];
+            
+            // 随机移动
+            if (Math.random() < 0.02 && !enemy.isAttacking) {
+                const moveDirection = Math.random() < 0.5 ? -1 : 1;
+                enemy.x += moveDirection * enemy.speed * 5;
+                
+                // 边界检查
+                if (enemy.x < 200) enemy.x = 200;
+                if (enemy.x > canvas.width - 300) enemy.x = canvas.width - 300;
+            }
+            
+            // 攻击逻辑
+            if (currentTime - enemy.lastAttackTime > attackInterval) {
+                enemy.lastAttackTime = currentTime;
+                enemy.isAttacking = true;
+                
+                // 根据阶段选择攻击模式
+                const maxPattern = enemy.phase === 3 ? 5 : (enemy.phase === 2 ? 4 : 3);
+                enemy.attackPattern = Math.floor(Math.random() * maxPattern);
+                
+                switch (enemy.attackPattern) {
+                    case 0: // 普通攻击
+                        enemy.state = 'attacking';
+                        const attackRange = {
+                            x: enemy.direction === 'right' ? enemy.x + enemy.width : enemy.x - 100,
+                            y: enemy.y - 50,
+                            width: 100,
+                            height: 100
+                        };
+                        
+                        if (checkCollision(attackRange, player)) {
+                            let damage = 25 + Math.floor(Math.random() * 15);
+                            
+                            // 检查防御
+                            const defenseBuff = player.buffs.find(b => b.type === 'defense');
+                            if (defenseBuff) {
+                                damage = Math.floor(damage * (1 - defenseBuff.value / 100));
+                                createDamageText(player.x, player.y - 50, `防御! ${damage}`);
+                            } else {
+                                player.health -= damage;
+                                player.state = 'hit';
+                                createDamageText(player.x, player.y - 50, damage);
+                                createHitEffect(player.x, player.y - 30);
+                                game.combo = 0;
+                            }
+                        }
+                        break;
+                        
+                    case 1: // 算法投射物
+                        enemy.state = 'skill1';
+                        
+                        // 发射多个投射物
+                        for (let i = 0; i < (enemy.phase === 3 ? 5 : 3); i++) {
+                            setTimeout(() => {
+                                createProjectile(
+                                    enemy.direction === 'right' ? enemy.x + enemy.width : enemy.x,
+                                    enemy.y + 50 + (i - 1) * 30,
+                                    enemy.direction,
+                                    false
+                                );
+                            }, i * 100);
+                        }
+                        break;
+                        
+                    case 2: // 范围攻击
+                        enemy.state = 'skill2';
+                        const radius = 150;
+                        const dx = player.x - enemy.x;
+                        const dy = player.y - enemy.y;
+                        const distance = Math.sqrt(dx * dx + dy * dy);
+                        
+                        if (distance < radius) {
+                            let damage = 40 + Math.floor(Math.random() * 25);
+                            
+                            const defenseBuff = player.buffs.find(b => b.type === 'defense');
+                            if (defenseBuff) {
+                                damage = Math.floor(damage * (1 - defenseBuff.value / 100));
+                                createDamageText(player.x, player.y - 50, `防御! ${damage}`);
+                            } else {
+                                player.health -= damage;
+                                player.state = 'hit';
+                                createDamageText(player.x, player.y - 50, damage);
+                                
+                                for (let i = 0; i < 6; i++) {
+                                    setTimeout(() => {
+                                        createHitEffect(player.x + Math.random() * 80 - 40, 
+                                                       player.y + Math.random() * 80 - 40);
+                                    }, i * 50);
+                                }
+                                
+                                game.combo = 0;
+                            }
+                        }
+                        break;
+                        
+                    case 3: // 召唤小怪
+                        enemy.state = 'skill3';
+                        
+                        if (game.minions.length < (enemy.phase === 3 ? 6 : 3)) {
+                            const minionTypes = ['sort', 'search', 'graph'];
+                            const minionType = minionTypes[Math.floor(Math.random() * minionTypes.length)];
+                            
+                            const minion = {
+                                type: minionType,
+                                x: enemy.x + (Math.random() > 0.5 ? 100 : -100),
+                                y: enemy.y + 100,
+                                width: 60,
+                                height: 80,
+                                health: 100,
+                                maxHealth: 100,
+                                speed: 4,
+                                state: 'idle'
+                            };
+                            
+                            game.minions.push(minion);
+                        }
+                        break;
+                        
+                    case 4: // 终极攻击（仅第三阶段）
+                        enemy.state = 'skill4';
+                        
+                        // 全屏攻击
+                        let damage = 80 + Math.floor(Math.random() * 40);
+                        
+                        const defenseBuff = player.buffs.find(b => b.type === 'defense');
+                        if (defenseBuff) {
+                            damage = Math.floor(damage * (1 - defenseBuff.value / 100));
+                            createDamageText(player.x, player.y - 50, `防御! ${damage}`);
+                        } else {
+                            player.health -= damage;
+                            player.state = 'hit';
+                            createDamageText(player.x, player.y - 50, damage, true);
+                            
+                            // 创建全屏攻击效果
+                            for (let i = 0; i < 15; i++) {
+                                setTimeout(() => {
+                                    createHitEffect(
+                                        player.x + Math.random() * 120 - 60,
+                                        player.y + Math.random() * 120 - 60,
+                                        '#ff0000'
+                                    );
+                                }, i * 30);
+                            }
+                            
+                            game.combo = 0;
+                        }
+                        break;
+                }
+                
+                // 重置攻击状态
+                setTimeout(() => {
+                    enemy.isAttacking = false;
+                    if (enemy.state.startsWith('skill') || enemy.state === 'attacking') {
+                        enemy.state = 'idle';
+                    }
+                }, 1000);
+            }
+        }
+
+        // 更新投射物
+        function updateProjectiles() {
+            // 更新玩家投射物
+            gameData.player.projectiles = gameData.player.projectiles.filter(projectile => {
+                projectile.x += projectile.speed * (projectile.direction === 'right' ? 1 : -1);
+                
+                // 更新位置
+                projectile.element.style.left = projectile.x + 'px';
+                
+                // 检查是否击中敌人
+                const projectileRect = {
+                    x: projectile.x,
+                    y: projectile.y,
+                    width: 20,
+                    height: 20
+                };
+                
+                if (checkCollision(projectileRect, gameData.enemy)) {
+                    // 造成伤害
+                    const isCritical = Math.random() < 0.2;
+                    const finalDamage = isCritical ? 
+                        Math.floor(projectile.damage * 1.5) : projectile.damage;
+                    
+                    gameData.enemy.health -= finalDamage;
+                    gameData.enemy.state = 'hit';
+                    createDamageText(gameData.enemy.x, gameData.enemy.y - 50, finalDamage, isCritical);
+                    createHitEffect(projectile.x, projectile.y);
+                    
+                    gameData.game.score += finalDamage;
+                    gameData.game.combo++;
+                    
+                    // 移除投射物
+                    if (document.body.contains(projectile.element)) {
+                        document.body.removeChild(projectile.element);
+                    }
+                    return false;
+                }
+                
+                // 检查是否超出屏幕
+                if (projectile.x < -50 || projectile.x > canvas.width + 50) {
+                    if (document.body.contains(projectile.element)) {
+                        document.body.removeChild(projectile.element);
+                    }
+                    return false;
+                }
+                
+                return true;
+            });
+            
+            // 更新敌人投射物
+            gameData.enemy.projectiles = gameData.enemy.projectiles.filter(projectile => {
+                projectile.x += projectile.speed * (projectile.direction === 'right' ? 1 : -1);
+                
+                // 更新位置
+                projectile.element.style.left = projectile.x + 'px';
+                
+                // 检查是否击中玩家
+                const projectileRect = {
+                    x: projectile.x,
+                    y: projectile.y,
+                    width: 30,
+                    height: 30
+                };
+                
+                if (checkCollision(projectileRect, gameData.player)) {
+                    // 造成伤害
+                    let damage = projectile.damage;
+                    
+                    const defenseBuff = gameData.player.buffs.find(b => b.type === 'defense');
+                    if (defenseBuff) {
+                        damage = Math.floor(damage * (1 - defenseBuff.value / 100));
+                        createDamageText(gameData.player.x, gameData.player.y - 50, `防御! ${damage}`);
+                    } else {
+                        gameData.player.health -= damage;
+                        gameData.player.state = 'hit';
+                        createDamageText(gameData.player.x, gameData.player.y - 50, damage);
+                        createHitEffect(projectile.x, projectile.y);
+                        gameData.game.combo = 0;
+                    }
+                    
+                    // 移除投射物
+                    if (document.body.contains(projectile.element)) {
+                        document.body.removeChild(projectile.element);
+                    }
+                    return false;
+                }
+                
+                // 检查是否超出屏幕
+                if (projectile.x < -50 || projectile.x > canvas.width + 50) {
+                    if (document.body.contains(projectile.element)) {
+                        document.body.removeChild(projectile.element);
+                    }
+                    return false;
+                }
+                
+                return true;
+            });
+        }
+
+        // 更新小怪
+        function updateMinions() {
+            gameData.game.minions = gameData.game.minions.filter(minion => {
+                // 小怪移动逻辑
+                if (Math.random() < 0.02) {
+                    const dx = gameData.player.x - minion.x;
+                    if (Math.abs(dx) > 50) {
+                        minion.x += minion.speed * (dx > 0 ? 1 : -1);
+                    }
+                }
+                
+                // 检查是否被玩家攻击击中
+                if (gameData.player.isAttacking) {
+                    const attackRange = {
+                        x: gameData.player.direction === 'right' ? 
+                            gameData.player.x + gameData.player.width : 
+                            gameData.player.x - 80,
+                        y: gameData.player.y - 40,
+                        width: 80,
+                        height: 80
+                    };
+                    
+                    if (checkCollision(attackRange, minion)) {
+                        const damage = 30 + Math.floor(Math.random() * 20);
+                        minion.health -= damage;
+                        createDamageText(minion.x, minion.y - 30, damage);
+                        createHitEffect(minion.x, minion.y);
+                        gameData.game.score += damage;
+                        gameData.game.combo++;
+                    }
+                }
+                
+                // 检查是否死亡
+                if (minion.health <= 0) {
+                    createHitEffect(minion.x + 30, minion.y + 40, '#ff6b00');
+                    return false;
+                }
+                
+                return true;
+            });
+        }
+
+        // 更新增益效果
+        function updateBuffs() {
+            gameData.player.buffs = gameData.player.buffs.filter(buff => {
+                buff.remainingTime--;
+                return buff.remainingTime > 0;
+            });
+            
+            updateBuffDisplay();
+        }
+
+        // 更新游戏状态
+        function updateGame() {
+            const { player, enemy, game } = gameData;
+            
+            if (!game.isRunning) return;
+            
+            // 更新技能冷却
+            Object.keys(game.skillCooldowns).forEach(skill => {
+                if (game.skillCooldowns[skill] > 0) {
+                    game.skillCooldowns[skill]--;
+                }
+            });
+            
+            // 更新连击显示
+            const comboDisplay = document.getElementById('comboDisplay');
+            const comboCount = document.getElementById('comboCount');
+            
+            if (game.combo > 1) {
+                comboDisplay.classList.add('visible');
+                comboCount.textContent = game.combo;
+            } else {
+                comboDisplay.classList.remove('visible');
+            }
+            
+            // 更新技能按钮冷却显示
+            const skillBtns = document.querySelectorAll('.skill-btn');
+            const cooldowns = [game.skillCooldowns.skill1, game.skillCooldowns.skill2, 
+                             game.skillCooldowns.skill3, game.skillCooldowns.skill4,
+                             game.skillCooldowns.skill5];
+            const maxCooldowns = [240, 360, 600, 480, 900];
+            
+            skillBtns.forEach((btn, index) => {
+                const overlay = btn.querySelector('.cooldown-overlay');
+                const percentage = (cooldowns[index] / maxCooldowns[index]) * 100;
+                overlay.style.height = percentage + '%';
+                
+                if (cooldowns[index] > 0) {
+                    btn.classList.add('cooldown');
+                } else {
+                    btn.classList.remove('cooldown');
+                }
+            });
+            
+            // 玩家移动速度增益
+            const speedBuff = player.buffs.find(b => b.type === 'speed');
+            const moveSpeed = speedBuff ? 
+                player.speed * (1 + speedBuff.value / 100) : player.speed;
+            
+            // 玩家移动
+            if (game.keys['w'] && player.y > 100) {
+                player.y -= moveSpeed;
+                if (player.state !== 'attacking' && !player.state.startsWith('skill') && !player.isDefending) {
+                    player.state = 'running';
+                }
+            }
+            if (game.keys['s'] && player.y < canvas.height - 150) {
+                player.y += moveSpeed;
+                if (player.state !== 'attacking' && !player.state.startsWith('skill') && !player.isDefending) {
+                    player.state = 'running';
+                }
+            }
+            if (game.keys['a'] && player.x > 50) {
+                player.x -= moveSpeed;
+                player.direction = 'left';
+                if (player.state !== 'attacking' && !player.state.startsWith('skill') && !player.isDefending) {
+                    player.state = 'running';
+                }
+            }
+            if (game.keys['d'] && player.x < canvas.width - 150) {
+                player.x += moveSpeed;
+                player.direction = 'right';
+                if (player.state !== 'attacking' && !player.state.startsWith('skill') && !player.isDefending) {
+                    player.state = 'running';
+                }
+            }
+            
+            // 玩家攻击
+            if (game.keys['i'] && !player.isAttacking && player.state !== 'hit' && !player.isDefending) {
+                player.isAttacking = true;
+                player.state = 'attacking';
+                
+                const attackRange = {
+                    x: player.direction === 'right' ? player.x + player.width : player.x - 80,
+                    y: player.y - 40,
+                    width: 80,
+                    height: 80
+                };
+                
+                if (checkCollision(attackRange, enemy)) {
+                    const attackBuff = player.buffs.find(b => b.type === 'attack');
+                    const damageMultiplier = attackBuff ? (1 + attackBuff.value / 100) : 1;
+                    const damage = Math.floor((20 + Math.floor(Math.random() * 15)) * damageMultiplier);
+                    
+                    enemy.health -= damage;
+                    enemy.state = 'hit';
+                    createDamageText(enemy.x, enemy.y - 50, damage);
+                    createHitEffect(enemy.x, enemy.y - 30);
+                    game.score += damage;
+                    game.combo++;
+                    
+                    // 敌人受击硬直
+                    setTimeout(() => {
+                        if (enemy.state === 'hit') {
+                            enemy.state = 'idle';
+                        }
+                    }, 500);
+                }
+                
+                // 攻击动画结束
+                setTimeout(() => {
+                    player.isAttacking = false;
+                    if (player.state === 'attacking') {
+                        player.state = 'idle';
+                    }
+                }, 500);
+            }
+            
+            // 技能释放
+            if (game.keys['j'] && game.skillCooldowns.skill1 === 0) {
+                usePlayerSkill('skill1');
+            }
+            if (game.keys['k'] && game.skillCooldowns.skill2 === 0) {
+                usePlayerSkill('skill2');
+            }
+            if (game.keys['l'] && game.skillCooldowns.skill3 === 0) {
+                usePlayerSkill('skill3');
+            }
+            if (game.keys['u'] && game.skillCooldowns.skill4 === 0) {
+                usePlayerSkill('skill4');
+            }
+            if (game.keys['o'] && game.skillCooldowns.skill5 === 0) {
+                usePlayerSkill('skill5');
+            }
+            
+            // 更新敌人AI
+            updateEnemyAI();
+            
+            // 更新投射物
+            updateProjectiles();
+            
+            // 更新小怪
+            updateMinions();
+            
+            // 更新增益效果
+            updateBuffs();
+            
+            // 更新计时器
+            if (game.time > 0) {
+                game.time--;
+            }
+            
+            // 检查游戏结束条件
+            if (player.health <= 0) {
+                player.health = 0;
+                game.isRunning = false;
+                showGameOver();
+            }
+            
+            if (enemy.health <= 0) {
+                enemy.health = 0;
+                game.isRunning = false;
+                showVictory();
+            }
+            
+            if (game.time <= 0) {
+                game.isRunning = false;
+                if (player.health > enemy.health) {
+                    showVictory();
+                } else {
+                    showGameOver();
+                }
+            }
+            
+            // 更新UI
+            updateUI();
+        }
+
+        // 更新UI显示
+        function updateUI() {
+            const { player, enemy, game } = gameData;
+            
+            document.getElementById('playerHealth').textContent = Math.max(0, Math.round(player.health)) + '%';
+            document.getElementById('playerHealthBar').style.width = (player.health / player.maxHealth * 100) + '%';
+            
+            document.getElementById('enemyHealth').textContent = Math.max(0, Math.round(enemy.health)) + '%';
+            document.getElementById('enemyHealthBar').style.width = (enemy.health / enemy.maxHealth * 100) + '%';
+            
+            document.getElementById('timer').textContent = Math.ceil(game.time / 60);
+            document.getElementById('score').textContent = game.score;
+        }
+
+        // 渲染游戏
+        function renderGame() {
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            
+            // 绘制小怪
+            gameData.game.minions.forEach(minion => {
+                drawMinion(minion.x, minion.y, minion.type);
+            });
+            
+            // 绘制玩家
+            drawPlayer(gameData.player.x, gameData.player.y, gameData.player.direction, gameData.player.state, gameData.player.animationFrame);
+            
+            // 绘制敌人
+            drawEnemy(gameData.enemy.x, gameData.enemy.y, gameData.enemy.direction, gameData.enemy.state, gameData.enemy.animationFrame);
+            
+            // 绘制连击数
+            if (gameData.game.combo > 1) {
+                ctx.save();
+                ctx.fillStyle = '#ffd700';
+                ctx.font = 'bold 24px Orbitron';
+                ctx.textAlign = 'center';
+                ctx.fillText(`连击: ${gameData.game.combo}`, canvas.width / 2, 80);
+                
+                if (gameData.game.combo > 5) {
+                    ctx.fillStyle = '#ff6b6b';
+                    ctx.font = 'bold 18px Orbitron';
+                    ctx.fillText(`MAX COMBO: ${gameData.game.maxCombo}`, canvas.width / 2, 110);
+                }
+                ctx.restore();
+            }
+        }
+
+        // 游戏循环
+        function gameLoop() {
+            updateGame();
+            renderGame();
+            requestAnimationFrame(gameLoop);
+        }
+
+        // 显示游戏结束
+        function showGameOver() {
+            document.getElementById('finalScore').textContent = gameData.game.score;
+            document.getElementById('gameOverModal').classList.add('active');
+        }
+
+        // 显示胜利
+        function showVictory() {
+            document.getElementById('victoryScore').textContent = gameData.game.score;
+            document.getElementById('victoryModal').classList.add('active');
+        }
+
+        // 键盘事件监听
+        document.addEventListener('keydown', (e) => {
+            gameData.game.keys[e.key.toLowerCase()] = true;
+            
+            // 防止默认行为
+            if (['w', 'a', 's', 'd', 'i', 'j', 'k', 'l', 'u', 'o'].includes(e.key.toLowerCase())) {
+                e.preventDefault();
+            }
         });
 
-        // 自动返回（1.5秒后）
-        setTimeout(function() {
+        document.addEventListener('keyup', (e) => {
+            gameData.game.keys[e.key.toLowerCase()] = false;
+        });
+
+        // 按钮事件监听
+        document.getElementById('backBtn').addEventListener('click', () => {
             window.location.href = 'index.html';
-        }, 1500);
+        });
+
+        document.getElementById('retryBtn').addEventListener('click', () => {
+            location.reload();
+        });
+
+        document.getElementById('homeBtn').addEventListener('click', () => {
+            window.location.href = 'index.html';
+        });
+
+        document.getElementById('nextLevelBtn').addEventListener('click', () => {
+            // 解锁NOI章节
+            const gameData = JSON.parse(localStorage.getItem('fightCCF_gameData') || '{}');
+            if (!gameData.unlockedChapters) {
+                gameData.unlockedChapters = [];
+            }
+            if (!gameData.unlockedChapters.includes('noi')) {
+                gameData.unlockedChapters.push('noi');
+                localStorage.setItem('fightCCF_gameData', JSON.stringify(gameData));
+                // 显示解锁通知
+                const notification = document.createElement('div');
+                notification.className = 'notification';
+                notification.textContent = '恭喜解锁NOI章节！';
+                document.body.appendChild(notification);
+                setTimeout(() => {
+                    document.body.removeChild(notification);
+                }, 2000);
+            }
+            window.location.href = 'noi.html';
+        });
+
+        document.getElementById('victoryHomeBtn').addEventListener('click', () => {
+            window.location.href = 'index.html';
+        });
+
+        // 技能按钮点击
+        document.querySelectorAll('.skill-btn').forEach((btn, index) => {
+            btn.addEventListener('click', () => {
+                const skills = ['skill1', 'skill2', 'skill3', 'skill4', 'skill5'];
+                const keys = ['j', 'k', 'l', 'u', 'o'];
+                
+                if (gameData.game.skillCooldowns[skills[index]] === 0 && gameData.game.isRunning) {
+                    gameData.game.keys[keys[index]] = true;
+                    setTimeout(() => {
+                        gameData.game.keys[keys[index]] = false;
+                    }, 100);
+                }
+            });
+        });
 
         // 禁用右键和Ctrl键
-        document.addEventListener('contextmenu', function(e) {
+        document.addEventListener('contextmenu', (e) => {
             e.preventDefault();
             return false;
         });
 
-        document.addEventListener('keydown', function(e) {
+        document.addEventListener('keydown', (e) => {
             if (e.ctrlKey && ['u', 'c', 'x', 's', 'a', 'z'].includes(e.key.toLowerCase())) {
                 e.preventDefault();
                 return false;
@@ -136,6 +1669,9 @@
                 return false;
             }
         });
+
+        // 开始游戏
+        gameLoop();
     </script>
 </body>
 </html>
