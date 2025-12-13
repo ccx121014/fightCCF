@@ -1,0 +1,435 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Fight CCF - 登录</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/lucide@0.544.0/dist/umd/lucide.min.js"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Orbitron:wght@400;500;600;700&family=Noto+Sans+SC:wght@300;400;500;700&display=swap');
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Noto Sans SC', sans-serif;
+            background: #0a0a0a;
+            color: #fff;
+            overflow: hidden;
+        }
+
+        .orbitron {
+            font-family: 'Orbitron', sans-serif;
+        }
+
+        .bg-main {
+            background: #000;
+            position: relative;
+            overflow: hidden;
+        }
+
+        #digitalRain {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: -1;
+            opacity: 0.3;
+        }
+
+        .glass {
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+        }
+
+        .btn {
+            transition: all 0.3s ease;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .btn::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.2), transparent);
+            transition: left 0.5s;
+        }
+
+        .btn:hover::before {
+            left: 100%;
+        }
+
+        .glow-text {
+            text-shadow: 0 0 10px #00ffff, 0 0 20px #00ffff, 0 0 30px #00ffff;
+        }
+
+        .floating {
+            animation: float 3s ease-in-out infinite;
+        }
+
+        @keyframes float {
+            0%, 100% { transform: translateY(0px); }
+            50% { transform: translateY(-10px); }
+        }
+
+        .notification {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            padding: 15px 20px;
+            background: rgba(0, 0, 0, 0.9);
+            color: white;
+            border-radius: 10px;
+            z-index: 2000;
+            border: 1px solid #00ffff;
+            transform: translateX(400px);
+            transition: transform 0.3s ease;
+        }
+
+        .notification.show {
+            transform: translateX(0);
+        }
+
+        .input-glow:focus {
+            box-shadow: 0 0 20px rgba(0, 255, 255, 0.5);
+            border-color: #00ffff;
+        }
+    </style>
+</head>
+<body class="bg-main h-screen flex items-center justify-center">
+    <!-- 数字雨背景 -->
+    <canvas id="digitalRain"></canvas>
+
+    <!-- 登录容器 -->
+    <div class="glass rounded-2xl p-8 max-w-md w-full mx-4">
+        <div class="text-center mb-8">
+            <div class="floating mb-4">
+                <i data-lucide="code-2" class="w-24 h-24 mx-auto text-cyan-400"></i>
+            </div>
+            <h1 class="text-4xl font-bold orbitron glow-text mb-2">Fight CCF</h1>
+            <p class="text-gray-400">编程格斗游戏</p>
+        </div>
+
+        <!-- 登录表单 -->
+        <div id="loginForm">
+            <div class="mb-6">
+                <label class="block text-sm font-medium mb-2 orbitron">用户名</label>
+                <input type="text" id="username" class="w-full glass rounded-lg px-4 py-3 input-glow focus:outline-none transition-all" placeholder="请输入用户名" maxlength="20">
+            </div>
+            <div class="mb-6">
+                <label class="block text-sm font-medium mb-2 orbitron">密钥 (可选)</label>
+                <div class="relative">
+                    <input type="text" id="key" class="w-full glass rounded-lg px-4 py-3 input-glow focus:outline-none transition-all" placeholder="输入密钥恢复进度，留空创建新账号" maxlength="200">
+                    <button id="pasteBtn" class="absolute right-3 top-1/2 transform -translate-y-1/2 text-cyan-400 hover:text-cyan-300">
+                        <i data-lucide="clipboard-paste" class="w-5 h-5"></i>
+                    </button>
+                </div>
+            </div>
+            <div class="space-y-4">
+                <button id="loginBtn" class="btn w-full bg-cyan-600 hover:bg-cyan-700 text-white py-3 rounded-lg font-medium orbitron">
+                    进入游戏
+                </button>
+                <button id="createBtn" class="btn w-full bg-blue-600 hover:bg-blue-700 text-white py-3 rounded-lg font-medium orbitron">
+                    创建新账号
+                </button>
+            </div>
+        </div>
+
+        <!-- 加载状态 -->
+        <div id="loadingForm" class="hidden text-center py-8">
+            <div class="floating mb-4">
+                <i data-lucide="loader-2" class="w-16 h-16 mx-auto text-cyan-400 animate-spin"></i>
+            </div>
+            <p class="orbitron">正在加载游戏数据...</p>
+        </div>
+
+        <!-- 说明文本 -->
+        <div class="mt-6 text-center text-sm text-gray-400">
+            <p>💡 提示：创建账号后会生成唯一密钥</p>
+            <p>请保存密钥以恢复游戏进度</p>
+        </div>
+    </div>
+
+    <!-- 通知 -->
+    <div id="notification" class="notification"></div>
+
+    <script>
+        // 初始化Lucide图标
+        lucide.createIcons();
+
+        // 数字雨效果
+        function initDigitalRain() {
+            const canvas = document.getElementById('digitalRain');
+            const ctx = canvas.getContext('2d');
+            
+            canvas.width = window.innerWidth;
+            canvas.height = window.innerHeight;
+            
+            const characters = '01';
+            const fontSize = 14;
+            const columns = canvas.width / fontSize;
+            
+            const drops = [];
+            for (let i = 0; i < columns; i++) {
+                drops[i] = Math.random() * -100;
+            }
+            
+            function draw() {
+                ctx.fillStyle = 'rgba(0, 0, 0, 0.05)';
+                ctx.fillRect(0, 0, canvas.width, canvas.height);
+                
+                ctx.fillStyle = '#00ff00';
+                ctx.font = fontSize + 'px monospace';
+                
+                for (let i = 0; i < drops.length; i++) {
+                    const text = characters.charAt(Math.floor(Math.random() * characters.length));
+                    ctx.fillText(text, i * fontSize, drops[i] * fontSize);
+                    
+                    if (drops[i] * fontSize > canvas.height && Math.random() > 0.975) {
+                        drops[i] = 0;
+                    }
+                    drops[i]++;
+                }
+            }
+            
+            setInterval(draw, 33);
+            
+            window.addEventListener('resize', () => {
+                canvas.width = window.innerWidth;
+                canvas.height = window.innerHeight;
+            });
+        }
+
+        // 初始化数字雨
+        initDigitalRain();
+
+        // 生成秘钥
+        function generateKey(data) {
+            const str = JSON.stringify(data);
+            return btoa(encodeURIComponent(str).replace(/%([0-9A-F]{2})/g, (match, p1) => 
+                String.fromCharCode(parseInt(p1, 16))
+            ));
+        }
+
+        // 解析秘钥
+        function parseKey(key) {
+            try {
+                const str = decodeURIComponent(Array.prototype.map.call(atob(key), (c) => 
+                    '%' + ('00' + c.charCodeAt(0).toString(16)).slice(-2)
+                ).join(''));
+                return JSON.parse(str);
+            } catch (e) {
+                return null;
+            }
+        }
+
+        // 显示通知
+        function showNotification(message) {
+            const notification = document.getElementById('notification');
+            notification.textContent = message;
+            notification.classList.add('show');
+            setTimeout(() => {
+                notification.classList.remove('show');
+            }, 3000);
+        }
+
+        // 从剪贴板粘贴
+        async function pasteFromClipboard() {
+            try {
+                if (navigator.clipboard && navigator.clipboard.readText) {
+                    const text = await navigator.clipboard.readText();
+                    document.getElementById('key').value = text;
+                    showNotification('已从剪贴板粘贴');
+                } else {
+                    showNotification('浏览器不支持剪贴板功能');
+                }
+            } catch (err) {
+                console.error('粘贴失败:', err);
+                showNotification('粘贴失败');
+            }
+        }
+
+        // 创建新账号
+        function createNewAccount(username) {
+            const gameData = {
+                username: username,
+                key: '',
+                unlockedChapters: ['cspj'],
+                unlockedCharacters: ['cspj'],
+                currentCharacter: 'cspj',
+                chapterProgress: {
+                    cspj: { completedLevels: 4, totalLevels: 4 },
+                    csps: { completedLevels: 0, totalLevels: 4 },
+                    noip: { completedLevels: 0, totalLevels: 3 },
+                    province: { completedLevels: 0, totalLevels: 4 },
+                    noi: { completedLevels: 0, totalLevels: 3 },
+                    ccf: { completedLevels: 0, totalLevels: 1 }
+                },
+                createdAt: new Date().toISOString()
+            };
+
+            // 生成密钥
+            gameData.key = generateKey(gameData);
+            
+            return gameData;
+        }
+
+        // 验证用户名
+        function validateUsername(username) {
+            if (!username || username.trim().length === 0) {
+                showNotification('请输入用户名');
+                return false;
+            }
+            if (username.length < 3) {
+                showNotification('用户名至少需要3个字符');
+                return false;
+            }
+            if (username.length > 20) {
+                showNotification('用户名不能超过20个字符');
+                return false;
+            }
+            if (!/^[a-zA-Z0-9\u4e00-\u9fa5_]+$/.test(username)) {
+                showNotification('用户名只能包含字母、数字、中文和下划线');
+                return false;
+            }
+            return true;
+        }
+
+        // 登录处理
+        async function handleLogin() {
+            const username = document.getElementById('username').value.trim();
+            const key = document.getElementById('key').value.trim();
+
+            if (!validateUsername(username)) {
+                return;
+            }
+
+            // 显示加载状态
+            document.getElementById('loginForm').classList.add('hidden');
+            document.getElementById('loadingForm').classList.remove('hidden');
+
+            try {
+                let gameData;
+
+                if (key) {
+                    // 使用密钥恢复
+                    gameData = parseKey(key);
+                    if (!gameData) {
+                        showNotification('密钥格式错误或已过期');
+                        document.getElementById('loginForm').classList.remove('hidden');
+                        document.getElementById('loadingForm').classList.add('hidden');
+                        return;
+                    }
+                    
+                    // 更新用户名为当前输入的用户名
+                    gameData.username = username;
+                    // 重新生成密钥
+                    gameData.key = generateKey(gameData);
+                } else {
+                    // 创建新账号
+                    gameData = createNewAccount(username);
+                }
+
+                // 保存到localStorage
+                localStorage.setItem('fightCCF_gameData', JSON.stringify(gameData));
+
+                // 模拟加载延迟
+                await new Promise(resolve => setTimeout(resolve, 1000));
+
+                // 跳转到主页
+                window.location.href = 'index.html';
+            } catch (error) {
+                console.error('登录失败:', error);
+                showNotification('登录失败，请重试');
+                document.getElementById('loginForm').classList.remove('hidden');
+                document.getElementById('loadingForm').classList.add('hidden');
+            }
+        }
+
+        // 创建新账号处理
+        async function handleCreateAccount() {
+            const username = document.getElementById('username').value.trim();
+            
+            if (!validateUsername(username)) {
+                return;
+            }
+
+            // 显示加载状态
+            document.getElementById('loginForm').classList.add('hidden');
+            document.getElementById('loadingForm').classList.remove('hidden');
+
+            try {
+                const gameData = createNewAccount(username);
+
+                // 保存到localStorage
+                localStorage.setItem('fightCCF_gameData', JSON.stringify(gameData));
+
+                // 模拟加载延迟
+                await new Promise(resolve => setTimeout(resolve, 1000));
+
+                // 跳转到主页
+                window.location.href = 'index.html';
+            } catch (error) {
+                console.error('创建账号失败:', error);
+                showNotification('创建账号失败，请重试');
+                document.getElementById('loginForm').classList.remove('hidden');
+                document.getElementById('loadingForm').classList.add('hidden');
+            }
+        }
+
+        // 事件监听
+        document.getElementById('pasteBtn').addEventListener('click', pasteFromClipboard);
+        document.getElementById('loginBtn').addEventListener('click', handleLogin);
+        document.getElementById('createBtn').addEventListener('click', handleCreateAccount);
+
+        // 回车键登录
+        document.getElementById('username').addEventListener('keypress', (e) => {
+            if (e.key === 'Enter') {
+                handleLogin();
+            }
+        });
+
+        document.getElementById('key').addEventListener('keypress', (e) => {
+            if (e.key === 'Enter') {
+                handleLogin();
+            }
+        });
+
+        // 检查是否已登录
+        window.addEventListener('DOMContentLoaded', () => {
+            const savedData = localStorage.getItem('fightCCF_gameData');
+            if (savedData) {
+                // 如果有保存的数据，直接跳转到主页
+                window.location.href = 'index.html';
+            }
+        });
+
+        // 禁用右键和Ctrl键
+        document.addEventListener('contextmenu', (e) => {
+            e.preventDefault();
+            return false;
+        });
+
+        document.addEventListener('keydown', (e) => {
+            if (e.ctrlKey && ['u', 'c', 'x', 's', 'a', 'z'].includes(e.key.toLowerCase())) {
+                e.preventDefault();
+                return false;
+            }
+            if (e.key === 'F12') {
+                e.preventDefault();
+                return false;
+            }
+        });
+    </script>
+</body>
+</html>
