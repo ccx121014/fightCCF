@@ -26,10 +26,20 @@
             font-family: 'Orbitron', sans-serif;
         }
 
-        .bg-main {
-            background-image: url('https://p3-flow-imagex-sign.byteimg.com/tos-cn-i-a9rns2rl98/rc/pc/super_tool/41616788d22f4882b4a2eb7a4f5d7f23~tplv-a9rns2rl98-image.image?rcl=20251213131030A8FD11621FC82FEA2AB2&rk3s=8e244e95&rrcfp=f06b921b&x-expires=1768194644&x-signature=e4JsupuRQfmYmOxsH9Bn1ibkGlI%3D');
-            background-size: cover;
-            background-position: center;
+        .game-bg {
+            background: #000;
+            position: relative;
+            overflow: hidden;
+        }
+
+        #digitalRain {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: -1;
+            opacity: 0.3;
         }
 
         .glass {
@@ -40,6 +50,151 @@
 
         .glow-text {
             text-shadow: 0 0 10px #00ffff, 0 0 20px #00ffff, 0 0 30px #00ffff;
+        }
+
+        .health-bar {
+            height: 20px;
+            background: rgba(0, 0, 0, 0.7);
+            border-radius: 10px;
+            overflow: hidden;
+            border: 2px solid #fff;
+        }
+
+        .health-fill {
+            height: 100%;
+            background: linear-gradient(90deg, #ff0000, #ff6b6b);
+            transition: width 0.3s ease;
+            border-radius: 8px;
+        }
+
+        .timer {
+            font-size: 2rem;
+            font-weight: bold;
+            text-shadow: 0 0 10px #00ffff;
+        }
+
+        .skill-btn {
+            transition: all 0.2s ease;
+            cursor: pointer;
+            position: relative;
+        }
+
+        .skill-btn:hover {
+            transform: scale(1.1);
+        }
+
+        .skill-btn.cooldown {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+
+        .skill-btn .cooldown-overlay {
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            width: 100%;
+            background: rgba(0, 0, 0, 0.7);
+            transition: height 0.1s linear;
+        }
+
+        .key-hint {
+            position: absolute;
+            top: -25px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: rgba(0, 0, 0, 0.8);
+            color: #00ff00;
+            padding: 2px 8px;
+            border-radius: 4px;
+            font-size: 0.8rem;
+            font-family: 'Courier New', monospace;
+        }
+
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.9);
+            z-index: 1000;
+            backdrop-filter: blur(10px);
+        }
+
+        .modal.active {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .damage-text {
+            position: absolute;
+            color: #ff0000;
+            font-weight: bold;
+            font-size: 1.2rem;
+            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.8);
+            pointer-events: none;
+            animation: damageFloat 1s ease-out forwards;
+        }
+
+        @keyframes damageFloat {
+            0% {
+                opacity: 1;
+                transform: translateY(0);
+            }
+            100% {
+                opacity: 0;
+                transform: translateY(-50px);
+            }
+        }
+
+        .hit-effect {
+            position: absolute;
+            width: 40px;
+            height: 40px;
+            background: radial-gradient(circle, rgba(255,255,255,1) 0%, rgba(255,255,255,0) 70%);
+            border-radius: 50%;
+            pointer-events: none;
+            animation: hitExpand 0.5s ease-out forwards;
+        }
+
+        @keyframes hitExpand {
+            0% {
+                opacity: 1;
+                transform: scale(0);
+            }
+            100% {
+                opacity: 0;
+                transform: scale(2);
+            }
+        }
+
+        .skill-effect {
+            position: absolute;
+            pointer-events: none;
+            z-index: 50;
+        }
+
+        .algorithm-text {
+            position: absolute;
+            color: #00ff00;
+            font-family: 'Courier New', monospace;
+            font-size: 0.9rem;
+            text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.8);
+            pointer-events: none;
+            animation: algorithmFloat 2s ease-out forwards;
+        }
+
+        @keyframes algorithmFloat {
+            0% {
+                opacity: 1;
+                transform: translateY(0) translateX(0);
+            }
+            100% {
+                opacity: 0;
+                transform: translateY(-100px) translateX(20px);
+            }
         }
 
         .floating {
@@ -94,39 +249,1133 @@
     </style>
 </head>
 <body class="bg-main h-screen flex items-center justify-center">
-    <div class="notification">
-        <div class="floating mb-6">
-            <i data-lucide="code-2" class="w-24 h-24 mx-auto text-cyan-400"></i>
+    <!-- 游戏画布 -->
+    <canvas id="digitalRain"></canvas>
+    <canvas id="gameCanvas" class="absolute top-0 left-0 w-full h-full"></canvas>
+
+    <!-- HUD界面 -->
+    <div class="hud p-6">
+        <!-- 顶部信息栏 -->
+        <div class="flex justify-between items-center mb-6">
+            <div class="flex items-center space-x-4">
+                <button id="backBtn" class="glass p-3 rounded-lg hover:bg-white/20 transition-colors">
+                    <i data-lucide="arrow-left" class="w-6 h-6"></i>
+                </button>
+                <div>
+                    <p class="text-sm text-gray-300">关卡</p>
+                    <p class="orbitron font-bold text-xl" id="currentLevel">CSP-S - 算法怪物</p>
+                </div>
+            </div>
+            <div class="timer orbitron" id="timer">180</div>
+            <div class="text-right">
+                <p class="text-sm text-gray-300">得分</p>
+                <p class="orbitron font-bold text-xl" id="score">0</p>
+            </div>
         </div>
-        <h2 class="text-3xl font-bold mb-4 orbitron glow-text">章节开发中</h2>
-        <p class="text-xl mb-8">CSP-S 章节尚未开发完成</p>
-        <p class="text-gray-400 mb-6">正在努力开发中，敬请期待...</p>
-        <button id="backBtn" class="btn bg-cyan-600 hover:bg-cyan-700 text-white py-3 px-8 rounded-lg font-medium orbitron">
-            返回主页
-        </button>
+
+        <!-- 血量条 -->
+        <div class="flex justify-between items-center mb-8">
+            <div class="w-1/3">
+                <div class="flex justify-between mb-2">
+                    <span class="orbitron" id="playerName">CSP-S选手</span>
+                    <span class="orbitron" id="playerHealth">100%</span>
+                </div>
+                <div class="health-bar">
+                    <div class="health-fill" id="playerHealthBar" style="width: 100%"></div>
+                </div>
+            </div>
+            <div class="w-1/3">
+                <div class="flex justify-between mb-2">
+                    <span class="orbitron" id="enemyName">算法怪物</span>
+                    <span class="orbitron" id="enemyHealth">300%</span>
+                </div>
+                <div class="health-bar">
+                    <div class="health-fill" id="enemyHealthBar" style="width: 100%"></div>
+                </div>
+            </div>
+        </div>
+
+        <!-- 技能按钮 -->
+        <div class="fixed bottom-8 left-1/2 transform -translate-x-1/2 flex space-x-6">
+            <div class="skill-btn glass rounded-full w-16 h-16 flex items-center justify-center relative">
+                <div class="key-hint">I</div>
+                <i data-lucide="code" class="w-8 h-8 text-cyan-400"></i>
+            </div>
+            <div class="skill-btn glass rounded-full w-16 h-16 flex items-center justify-center relative" id="skill1Btn">
+                <div class="key-hint">J</div>
+                <i data-lucide="sort-numeric-asc" class="w-8 h-8 text-cyan-400"></i>
+                <div class="cooldown-overlay" style="height: 0%"></div>
+            </div>
+            <div class="skill-btn glass rounded-full w-16 h-16 flex items-center justify-center relative" id="skill2Btn">
+                <div class="key-hint">K</div>
+                <i data-lucide="git-branch" class="w-8 h-8 text-cyan-400"></i>
+                <div class="cooldown-overlay" style="height: 0%"></div>
+            </div>
+            <div class="skill-btn glass rounded-full w-16 h-16 flex items-center justify-center relative" id="skill3Btn">
+                <div class="key-hint">L</div>
+                <i data-lucide="brain" class="w-8 h-8 text-cyan-400"></i>
+                <div class="cooldown-overlay" style="height: 0%"></div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 游戏结束模态框 -->
+    <div id="gameOverModal" class="modal">
+        <div class="glass rounded-2xl p-8 max-w-md w-full mx-4 text-center">
+            <h2 class="text-4xl font-bold mb-6 orbitron glow-text" id="gameOverTitle">游戏结束</h2>
+            <div class="space-y-4 mb-8">
+                <p class="text-xl">最终得分: <span class="orbitron font-bold" id="finalScore">0</span></p>
+                <p class="text-lg" id="gameOverMessage">你被算法怪物击败了！</p>
+            </div>
+            <div class="flex space-x-4">
+                <button id="retryBtn" class="btn flex-1 bg-cyan-600 hover:bg-cyan-700 text-white py-3 rounded-lg font-medium orbitron">
+                    重试
+                </button>
+                <button id="homeBtn" class="btn flex-1 bg-blue-600 hover:bg-blue-700 text-white py-3 rounded-lg font-medium orbitron">
+                    返回主页
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- 胜利模态框 -->
+    <div id="victoryModal" class="modal">
+        <div class="glass rounded-2xl p-8 max-w-md w-full mx-4 text-center">
+            <div class="floating mb-6">
+                <i data-lucide="trophy" class="w-24 h-24 mx-auto text-yellow-400"></i>
+            </div>
+            <h2 class="text-4xl font-bold mb-6 orbitron glow-text">胜利！</h2>
+            <div class="space-y-4 mb-8">
+                <p class="text-xl">最终得分: <span class="orbitron font-bold" id="victoryScore">0</span></p>
+                <p class="text-lg">你成功击败了算法怪物！</p>
+                <div class="glass rounded-lg p-4">
+                    <p class="text-cyan-400 font-semibold">解锁成就</p>
+                    <p class="text-sm text-gray-300">算法大师 - 掌握了高级算法的精髓</p>
+                </div>
+            </div>
+            <div class="flex space-x-4">
+                <button id="nextLevelBtn" class="btn flex-1 bg-green-600 hover:bg-green-700 text-white py-3 rounded-lg font-medium orbitron">
+                    下一关
+                </button>
+                <button id="victoryHomeBtn" class="btn flex-1 bg-blue-600 hover:bg-blue-700 text-white py-3 rounded-lg font-medium orbitron">
+                    返回主页
+                </button>
+            </div>
+        </div>
     </div>
 
     <script>
+        // 数字雨效果
+        function initDigitalRain() {
+            const canvas = document.getElementById('digitalRain');
+            const ctx = canvas.getContext('2d');
+            
+            canvas.width = window.innerWidth;
+            canvas.height = window.innerHeight;
+            
+            const characters = '01';
+            const fontSize = 14;
+            const columns = canvas.width / fontSize;
+            
+            const drops = [];
+            for (let i = 0; i < columns; i++) {
+                drops[i] = Math.random() * -100;
+            }
+            
+            function draw() {
+                ctx.fillStyle = 'rgba(0, 0, 0, 0.05)';
+                ctx.fillRect(0, 0, canvas.width, canvas.height);
+                
+                ctx.fillStyle = '#00ff00';
+                ctx.font = fontSize + 'px monospace';
+                
+                for (let i = 0; i < drops.length; i++) {
+                    const text = characters.charAt(Math.floor(Math.random() * characters.length));
+                    ctx.fillText(text, i * fontSize, drops[i] * fontSize);
+                    
+                    if (drops[i] * fontSize > canvas.height && Math.random() > 0.975) {
+                        drops[i] = 0;
+                    }
+                    drops[i]++;
+                }
+            }
+            
+            setInterval(draw, 33);
+            
+            window.addEventListener('resize', () => {
+                canvas.width = window.innerWidth;
+                canvas.height = window.innerHeight;
+            });
+        }
+
         // 初始化Lucide图标
         lucide.createIcons();
+        
+        // 初始化数字雨
+        initDigitalRain();
 
-        // 返回主页
-        document.getElementById('backBtn').addEventListener('click', function() {
+        // 游戏数据
+        let gameData = {
+            player: {
+                name: 'CSP-S选手',
+                health: 100,
+                maxHealth: 100,
+                x: 300,
+                y: 400,
+                width: 80,
+                height: 120,
+                speed: 6,
+                isAttacking: false,
+                direction: 'right',
+                animationFrame: 0,
+                state: 'idle' // idle, running, attacking, hit, skill1, skill2, skill3
+            },
+            enemy: {
+                name: '算法怪物',
+                health: 300,
+                maxHealth: 300,
+                x: 800,
+                y: 400,
+                width: 120,
+                height: 160,
+                speed: 4,
+                isAttacking: false,
+                direction: 'left',
+                animationFrame: 0,
+                state: 'idle',
+                attackPattern: 0, // 0: 普通攻击, 1: 算法攻击, 2: 数据结构攻击
+                lastAttackTime: 0
+            },
+            game: {
+                score: 0,
+                time: 180,
+                isRunning: true,
+                level: 'CSP-S - 算法怪物',
+                keys: {},
+                skillCooldowns: {
+                    skill1: 0,
+                    skill2: 0,
+                    skill3: 0
+                },
+                lastEnemyAttack: 0,
+                combo: 0,
+                maxCombo: 0
+            }
+        };
+
+        // 获取Canvas和上下文
+        const canvas = document.getElementById('gameCanvas');
+        const ctx = canvas.getContext('2d');
+
+        // 设置Canvas尺寸
+        function resizeCanvas() {
+            canvas.width = window.innerWidth;
+            canvas.height = window.innerHeight;
+        }
+
+        resizeCanvas();
+        window.addEventListener('resize', resizeCanvas);
+
+        // 角色图像（使用Canvas绘制火柴人）
+        function drawPlayer(x, y, direction, state, frame) {
+            ctx.save();
+            
+            // 绘制身体
+            ctx.strokeStyle = '#3b82f6';
+            ctx.fillStyle = '#3b82f6';
+            ctx.lineWidth = 4;
+            
+            // 根据状态调整绘制
+            let offsetX = 0;
+            let offsetY = 0;
+            
+            if (state === 'attacking') {
+                offsetX = direction === 'right' ? 20 : -20;
+                offsetY = -10;
+            } else if (state === 'hit') {
+                offsetX = Math.sin(Date.now() * 0.01) * 10;
+                offsetY = Math.cos(Date.now() * 0.01) * 5;
+            } else if (state === 'skill1') {
+                offsetY = -15;
+            } else if (state === 'skill3') {
+                offsetY = -20;
+            }
+            
+            x += offsetX;
+            y += offsetY;
+            
+            // 头部
+            ctx.beginPath();
+            ctx.arc(x, y - 60, 25, 0, Math.PI * 2);
+            ctx.fill();
+            ctx.stroke();
+            
+            // 身体
+            ctx.beginPath();
+            ctx.moveTo(x, y - 35);
+            ctx.lineTo(x, y + 20);
+            ctx.stroke();
+            
+            // 手臂
+            if (state === 'attacking') {
+                // 攻击姿势
+                if (direction === 'right') {
+                    ctx.beginPath();
+                    ctx.moveTo(x, y - 20);
+                    ctx.lineTo(x + 40, y - 30);
+                    ctx.stroke();
+                    
+                    // 代码武器
+                    ctx.fillStyle = '#64748b';
+                    ctx.fillRect(x + 40, y - 35, 20, 10);
+                } else {
+                    ctx.beginPath();
+                    ctx.moveTo(x, y - 20);
+                    ctx.lineTo(x - 40, y - 30);
+                    ctx.stroke();
+                    
+                    // 代码武器
+                    ctx.fillStyle = '#64748b';
+                    ctx.fillRect(x - 60, y - 35, 20, 10);
+                }
+            } else if (state === 'skill1') {
+                // 排序技能姿势
+                ctx.strokeStyle = '#10b981';
+                ctx.lineWidth = 6;
+                if (direction === 'right') {
+                    ctx.beginPath();
+                    ctx.moveTo(x, y - 20);
+                    ctx.lineTo(x + 50, y - 40);
+                    ctx.stroke();
+                    
+                    // 排序符号
+                    ctx.fillStyle = '#10b981';
+                    for (let i = 0; i < 3; i++) {
+                        ctx.fillRect(x + 30 + i * 8, y - 50 - i * 5, 6, 20);
+                    }
+                } else {
+                    ctx.beginPath();
+                    ctx.moveTo(x, y - 20);
+                    ctx.lineTo(x - 50, y - 40);
+                    ctx.stroke();
+                    
+                    // 排序符号
+                    ctx.fillStyle = '#10b981';
+                    for (let i = 0; i < 3; i++) {
+                        ctx.fillRect(x - 40 - i * 8, y - 50 - i * 5, 6, 20);
+                    }
+                }
+                ctx.strokeStyle = '#3b82f6';
+                ctx.lineWidth = 4;
+            } else if (state === 'skill2') {
+                // 树结构技能姿势
+                ctx.strokeStyle = '#8b5cf6';
+                ctx.lineWidth = 6;
+                if (direction === 'right') {
+                    ctx.beginPath();
+                    ctx.moveTo(x, y - 20);
+                    ctx.lineTo(x + 40, y - 20);
+                    ctx.lineTo(x + 30, y - 40);
+                    ctx.moveTo(x + 40, y - 20);
+                    ctx.lineTo(x + 50, y - 40);
+                    ctx.stroke();
+                } else {
+                    ctx.beginPath();
+                    ctx.moveTo(x, y - 20);
+                    ctx.lineTo(x - 40, y - 20);
+                    ctx.lineTo(x - 30, y - 40);
+                    ctx.moveTo(x - 40, y - 20);
+                    ctx.lineTo(x - 50, y - 40);
+                    ctx.stroke();
+                }
+                ctx.strokeStyle = '#3b82f6';
+                ctx.lineWidth = 4;
+            } else if (state === 'skill3') {
+                // AI大脑技能姿势
+                ctx.strokeStyle = '#ec4899';
+                ctx.lineWidth = 8;
+                ctx.beginPath();
+                ctx.arc(x, y - 40, 35, 0, Math.PI * 2);
+                ctx.stroke();
+                
+                // 神经网络线条
+                for (let i = 0; i < 5; i++) {
+                    ctx.beginPath();
+                    ctx.moveTo(x - 25 + i * 12, y - 10);
+                    ctx.lineTo(x - 20 + i * 10, y + 10);
+                    ctx.stroke();
+                }
+                ctx.strokeStyle = '#3b82f6';
+                ctx.lineWidth = 4;
+            } else {
+                // 普通姿势
+                ctx.beginPath();
+                ctx.moveTo(x, y - 20);
+                ctx.lineTo(x - 25, y - 10);
+                ctx.stroke();
+                
+                ctx.beginPath();
+                ctx.moveTo(x, y - 20);
+                ctx.lineTo(x + 25, y - 10);
+                ctx.stroke();
+            }
+            
+            // 腿部
+            ctx.beginPath();
+            ctx.moveTo(x, y + 20);
+            ctx.lineTo(x - 20, y + 60);
+            ctx.stroke();
+            
+            ctx.beginPath();
+            ctx.moveTo(x, y + 20);
+            ctx.lineTo(x + 20, y + 60);
+            ctx.stroke();
+            
+            // 眼睛
+            ctx.fillStyle = '#000';
+            if (direction === 'right') {
+                ctx.beginPath();
+                ctx.arc(x - 8, y - 65, 3, 0, Math.PI * 2);
+                ctx.arc(x + 8, y - 65, 3, 0, Math.PI * 2);
+                ctx.fill();
+            } else {
+                ctx.beginPath();
+                ctx.arc(x - 8, y - 65, 3, 0, Math.PI * 2);
+                ctx.arc(x + 8, y - 65, 3, 0, Math.PI * 2);
+                ctx.fill();
+            }
+            
+            // CSP-S标志
+            ctx.fillStyle = '#10b981';
+            ctx.beginPath();
+            ctx.arc(x, y - 25, 8, 0, Math.PI * 2);
+            ctx.fill();
+            
+            ctx.restore();
+        }
+
+        function drawEnemy(x, y, direction, state, frame) {
+            ctx.save();
+            
+            // 绘制算法怪物
+            ctx.strokeStyle = '#ef4444';
+            ctx.fillStyle = '#ef4444';
+            ctx.lineWidth = 5;
+            
+            // 根据状态调整
+            let offsetX = 0;
+            let offsetY = 0;
+            
+            if (state === 'attacking') {
+                offsetX = direction === 'right' ? 20 : -20;
+                offsetY = -15;
+            } else if (state === 'hit') {
+                offsetX = Math.sin(Date.now() * 0.01) * 15;
+                offsetY = Math.cos(Date.now() * 0.01) * 8;
+            } else if (state === 'skill1') {
+                offsetY = -20;
+            } else if (state === 'skill2') {
+                offsetX = Math.sin(Date.now() * 0.02) * 10;
+            }
+            
+            x += offsetX;
+            y += offsetY;
+            
+            // 头部（算法符号）
+            ctx.beginPath();
+            ctx.moveTo(x, y - 80);
+            ctx.lineTo(x + 30, y - 50);
+            ctx.lineTo(x + 15, y - 50);
+            ctx.lineTo(x + 15, y - 20);
+            ctx.lineTo(x - 15, y - 20);
+            ctx.lineTo(x - 15, y - 50);
+            ctx.lineTo(x - 30, y - 50);
+            ctx.closePath();
+            ctx.fill();
+            ctx.stroke();
+            
+            // 身体（数据结构）
+            ctx.beginPath();
+            ctx.moveTo(x, y - 20);
+            ctx.lineTo(x, y + 40);
+            ctx.stroke();
+            
+            // 数据结构装饰
+            ctx.fillStyle = '#f59e0b';
+            for (let i = 0; i < 3; i++) {
+                ctx.beginPath();
+                ctx.arc(x, y + 10 * i, 6, 0, Math.PI * 2);
+                ctx.fill();
+            }
+            
+            // 手臂
+            if (state === 'attacking') {
+                // 攻击姿势
+                if (direction === 'right') {
+                    ctx.strokeStyle = '#f59e0b';
+                    ctx.lineWidth = 8;
+                    ctx.beginPath();
+                    ctx.moveTo(x, y - 10);
+                    ctx.lineTo(x + 60, y - 30);
+                    ctx.stroke();
+                    
+                    // 算法武器
+                    ctx.fillStyle = '#f59e0b';
+                    ctx.beginPath();
+                    ctx.moveTo(x + 60, y - 30);
+                    ctx.lineTo(x + 80, y - 40);
+                    ctx.lineTo(x + 80, y - 20);
+                    ctx.closePath();
+                    ctx.fill();
+                } else {
+                    ctx.strokeStyle = '#f59e0b';
+                    ctx.lineWidth = 8;
+                    ctx.beginPath();
+                    ctx.moveTo(x, y - 10);
+                    ctx.lineTo(x - 60, y - 30);
+                    ctx.stroke();
+                    
+                    // 算法武器
+                    ctx.fillStyle = '#f59e0b';
+                    ctx.beginPath();
+                    ctx.moveTo(x - 60, y - 30);
+                    ctx.lineTo(x - 80, y - 40);
+                    ctx.lineTo(x - 80, y - 20);
+                    ctx.closePath();
+                    ctx.fill();
+                }
+                ctx.strokeStyle = '#ef4444';
+                ctx.lineWidth = 5;
+            } else if (state === 'skill1') {
+                // 算法技能
+                ctx.strokeStyle = '#00ffff';
+                ctx.lineWidth = 6;
+                for (let i = 0; i < 4; i++) {
+                    ctx.beginPath();
+                    ctx.moveTo(x, y - 10);
+                    ctx.lineTo(x + 30 - i * 15, y - 20 - i * 5);
+                    ctx.stroke();
+                }
+                ctx.strokeStyle = '#ef4444';
+                ctx.lineWidth = 5;
+            } else if (state === 'skill2') {
+                // 数据结构技能
+                ctx.strokeStyle = '#ff00ff';
+                ctx.lineWidth = 6;
+                ctx.beginPath();
+                ctx.arc(x, y, 40, 0, Math.PI * 2);
+                ctx.stroke();
+                
+                for (let i = 0; i < 8; i++) {
+                    const angle = (i / 8) * Math.PI * 2;
+                    ctx.beginPath();
+                    ctx.moveTo(x + Math.cos(angle) * 20, y + Math.sin(angle) * 20);
+                    ctx.lineTo(x + Math.cos(angle) * 35, y + Math.sin(angle) * 35);
+                    ctx.stroke();
+                }
+                ctx.strokeStyle = '#ef4444';
+                ctx.lineWidth = 5;
+            } else {
+                // 普通姿势
+                ctx.beginPath();
+                ctx.moveTo(x, y - 10);
+                ctx.lineTo(x - 40, y);
+                ctx.stroke();
+                
+                ctx.beginPath();
+                ctx.moveTo(x, y - 10);
+                ctx.lineTo(x + 40, y);
+                ctx.stroke();
+            }
+            
+            // 腿部
+            ctx.beginPath();
+            ctx.moveTo(x, y + 40);
+            ctx.lineTo(x - 30, y + 80);
+            ctx.stroke();
+            
+            ctx.beginPath();
+            ctx.moveTo(x, y + 40);
+            ctx.lineTo(x + 30, y + 80);
+            ctx.stroke();
+            
+            // 发光效果
+            if (state === 'idle') {
+                ctx.strokeStyle = '#f59e0b';
+                ctx.lineWidth = 2;
+                ctx.beginPath();
+                ctx.arc(x, y - 50, 40, 0, Math.PI * 2);
+                ctx.stroke();
+            }
+            
+            ctx.restore();
+        }
+
+        // 绘制技能效果
+        function createSkillEffect(x, y, type) {
+            const effect = document.createElement('div');
+            effect.className = 'skill-effect';
+            effect.style.left = x + 'px';
+            effect.style.top = y + 'px';
+            
+            switch (type) {
+                case 'skill1':
+                    effect.innerHTML = `
+                        <div class="algorithm-text">void quickSort(int[] arr) {</div>
+                        <div class="algorithm-text" style="top: 20px; left: 20px;">if (arr.length > 1) {</div>
+                        <div class="algorithm-text" style="top: 40px; left: 40px;">int pivot = partition(arr);</div>
+                        <div class="algorithm-text" style="top: 60px; left: 40px;">quickSort(arr, 0, pivot-1);</div>
+                        <div class="algorithm-text" style="top: 80px; left: 40px;">quickSort(arr, pivot+1, end);</div>
+                        <div class="algorithm-text" style="top: 100px; left: 20px;">}</div>
+                        <div class="algorithm-text" style="top: 120px;">}</div>
+                    `;
+                    break;
+                case 'skill2':
+                    effect.innerHTML = `
+                        <div class="algorithm-text">class BinaryTree {</div>
+                        <div class="algorithm-text" style="top: 20px; left: 20px;">Node root;</div>
+                        <div class="algorithm-text" style="top: 40px; left: 20px;">void insert(int value) {</div>
+                        <div class="algorithm-text" style="top: 60px; left: 40px;">if (root == null) {</div>
+                        <div class="algorithm-text" style="top: 80px; left: 60px;">root = new Node(value);</div>
+                        <div class="algorithm-text" style="top: 100px; left: 40px;">}</div>
+                        <div class="algorithm-text" style="top: 120px; left: 20px;">}</div>
+                        <div class="algorithm-text" style="top: 140px;">}</div>
+                    `;
+                    break;
+                case 'skill3':
+                    effect.innerHTML = `
+                        <div class="algorithm-text" style="color: #ff00ff;">class AIAlgorithm {</div>
+                        <div class="algorithm-text" style="top: 20px; left: 20px; color: #00ffff;">public static void main() {</div>
+                        <div class="algorithm-text" style="top: 40px; left: 40px; color: #10b981;">neuralNetwork.train();</div>
+                        <div class="algorithm-text" style="top: 60px; left: 40px; color: #10b981;">deepLearning.optimize();</div>
+                        <div class="algorithm-text" style="top: 80px; left: 40px; color: #ec4899;">System.out.println("AI OVERPOWER!");</div>
+                        <div class="algorithm-text" style="top: 100px; left: 20px; color: #00ffff;">}</div>
+                        <div class="algorithm-text" style="top: 120px; color: #ff00ff;">}</div>
+                    `;
+                    break;
+            }
+            
+            document.body.appendChild(effect);
+            
+            setTimeout(() => {
+                document.body.removeChild(effect);
+            }, 2000);
+        }
+
+        // 创建伤害文本
+        function createDamageText(x, y, damage) {
+            const text = document.createElement('div');
+            text.className = 'damage-text';
+            text.textContent = '-' + damage;
+            text.style.left = x + 'px';
+            text.style.top = y + 'px';
+            document.body.appendChild(text);
+            
+            setTimeout(() => {
+                document.body.removeChild(text);
+            }, 1000);
+        }
+
+        // 创建击中效果
+        function createHitEffect(x, y) {
+            const effect = document.createElement('div');
+            effect.className = 'hit-effect';
+            effect.style.left = (x - 20) + 'px';
+            effect.style.top = (y - 20) + 'px';
+            document.body.appendChild(effect);
+            
+            setTimeout(() => {
+                document.body.removeChild(effect);
+            }, 500);
+        }
+
+        // 检查碰撞
+        function checkCollision(rect1, rect2) {
+            return rect1.x < rect2.x + rect2.width &&
+                   rect1.x + rect1.width > rect2.x &&
+                   rect1.y < rect2.y + rect2.height &&
+                   rect1.y + rect1.height > rect2.y;
+        }
+
+        // 更新技能冷却显示
+        function updateSkillCooldowns() {
+            const { skillCooldowns } = gameData.game;
+            
+            const skill1Btn = document.getElementById('skill1Btn');
+            const skill2Btn = document.getElementById('skill2Btn');
+            const skill3Btn = document.getElementById('skill3Btn');
+            
+            // 技能1冷却
+            if (skillCooldowns.skill1 > 0) {
+                skill1Btn.classList.add('cooldown');
+                const cooldownPercent = (skillCooldowns.skill1 / 30) * 100;
+                skill1Btn.querySelector('.cooldown-overlay').style.height = cooldownPercent + '%';
+            } else {
+                skill1Btn.classList.remove('cooldown');
+                skill1Btn.querySelector('.cooldown-overlay').style.height = '0%';
+            }
+            
+            // 技能2冷却
+            if (skillCooldowns.skill2 > 0) {
+                skill2Btn.classList.add('cooldown');
+                const cooldownPercent = (skillCooldowns.skill2 / 45) * 100;
+                skill2Btn.querySelector('.cooldown-overlay').style.height = cooldownPercent + '%';
+            } else {
+                skill2Btn.classList.remove('cooldown');
+                skill2Btn.querySelector('.cooldown-overlay').style.height = '0%';
+            }
+            
+            // 技能3冷却
+            if (skillCooldowns.skill3 > 0) {
+                skill3Btn.classList.add('cooldown');
+                const cooldownPercent = (skillCooldowns.skill3 / 60) * 100;
+                skill3Btn.querySelector('.cooldown-overlay').style.height = cooldownPercent + '%';
+            } else {
+                skill3Btn.classList.remove('cooldown');
+                skill3Btn.querySelector('.cooldown-overlay').style.height = '0%';
+            }
+        }
+
+        // 玩家技能
+        function usePlayerSkill(skillType) {
+            const { player, game } = gameData;
+            
+            if (game.skillCooldowns[skillType] > 0) return false;
+            
+            player.state = skillType;
+            
+            switch (skillType) {
+                case 'skill1': // 排序技能
+                    game.skillCooldowns.skill1 = 30; // 3秒冷却
+                    createSkillEffect(player.x + (player.direction === 'right' ? 50 : -50), player.y - 50, 'skill1');
+                    
+                    // 对敌人造成伤害
+                    const attackRange = {
+                        x: player.direction === 'right' ? player.x + player.width : player.x - 80,
+                        y: player.y - 40,
+                        width: 80,
+                        height: 80
+                    };
+                    
+                    if (checkCollision(attackRange, gameData.enemy)) {
+                        const damage = 25 + Math.floor(Math.random() * 10);
+                        gameData.enemy.health -= damage;
+                        gameData.enemy.state = 'hit';
+                        createDamageText(gameData.enemy.x, gameData.enemy.y - 50, damage);
+                        createHitEffect(gameData.enemy.x, gameData.enemy.y - 30);
+                        game.score += damage * 2;
+                        game.combo++;
+                    }
+                    break;
+                    
+                case 'skill2': // 树结构技能
+                    game.skillCooldowns.skill2 = 45; // 4.5秒冷却
+                    createSkillEffect(player.x, player.y - 60, 'skill2');
+                    
+                    // 范围伤害
+                    const radius = 120;
+                    const dx = gameData.enemy.x - player.x;
+                    const dy = gameData.enemy.y - player.y;
+                    const distance = Math.sqrt(dx * dx + dy * dy);
+                    
+                    if (distance < radius) {
+                        const damage = 35 + Math.floor(Math.random() * 15);
+                        gameData.enemy.health -= damage;
+                        gameData.enemy.state = 'hit';
+                        createDamageText(gameData.enemy.x, gameData.enemy.y - 50, damage);
+                        createHitEffect(gameData.enemy.x, gameData.enemy.y - 30);
+                        game.score += damage * 3;
+                        game.combo += 2;
+                    }
+                    break;
+                    
+                case 'skill3': // AI大脑技能
+                    game.skillCooldowns.skill3 = 60; // 6秒冷却
+                    createSkillEffect(player.x, player.y - 80, 'skill3');
+                    
+                    // 强大的全屏伤害
+                    const damage = 50 + Math.floor(Math.random() * 20);
+                    gameData.enemy.health -= damage;
+                    gameData.enemy.state = 'hit';
+                    createDamageText(gameData.enemy.x, gameData.enemy.y - 50, damage);
+                    
+                    // 创建多个击中效果
+                    for (let i = 0; i < 5; i++) {
+                        setTimeout(() => {
+                            createHitEffect(gameData.enemy.x + Math.random() * 60 - 30, 
+                                           gameData.enemy.y + Math.random() * 60 - 30);
+                        }, i * 100);
+                    }
+                    
+                    game.score += damage * 4;
+                    game.combo += 3;
+                    break;
+            }
+            
+            // 重置玩家状态
+            setTimeout(() => {
+                if (player.state === skillType) {
+                    player.state = 'idle';
+                }
+            }, 1000);
+            
+            return true;
+        }
+
+        // 敌人AI
+        function updateEnemyAI() {
+            const { enemy, player, game } = gameData;
+            const currentTime = Date.now();
+            
+            // 简单的AI逻辑
+            if (Math.abs(player.x - enemy.x) > 200) {
+                // 接近玩家
+                if (player.x > enemy.x) {
+                    enemy.x += enemy.speed;
+                    enemy.direction = 'right';
+                } else {
+                    enemy.x -= enemy.speed;
+                    enemy.direction = 'left';
+                }
+                enemy.state = 'running';
+            } else {
+                // 攻击玩家
+                if (currentTime - enemy.lastAttackTime > 2000) { // 2秒攻击间隔
+                    enemy.lastAttackTime = currentTime;
+                    enemy.isAttacking = true;
+                    
+                    // 随机选择攻击模式
+                    enemy.attackPattern = Math.floor(Math.random() * 3);
+                    
+                    switch (enemy.attackPattern) {
+                        case 0: // 普通攻击
+                            enemy.state = 'attacking';
+                            const attackRange = {
+                                x: enemy.direction === 'right' ? enemy.x + enemy.width : enemy.x - 60,
+                                y: enemy.y - 30,
+                                width: 60,
+                                height: 60
+                            };
+                            
+                            if (checkCollision(attackRange, player)) {
+                                const damage = 15 + Math.floor(Math.random() * 5);
+                                player.health -= damage;
+                                player.state = 'hit';
+                                createDamageText(player.x, player.y - 50, damage);
+                                createHitEffect(player.x, player.y - 30);
+                                game.combo = 0; // 重置连击
+                            }
+                            break;
+                            
+                        case 1: // 算法攻击
+                            enemy.state = 'skill1';
+                            const algorithmRange = {
+                                x: enemy.direction === 'right' ? enemy.x + enemy.width : enemy.x - 100,
+                                y: enemy.y - 50,
+                                width: 100,
+                                height: 80
+                            };
+                            
+                            if (checkCollision(algorithmRange, player)) {
+                                const damage = 20 + Math.floor(Math.random() * 10);
+                                player.health -= damage;
+                                player.state = 'hit';
+                                createDamageText(player.x, player.y - 50, damage);
+                                createHitEffect(player.x, player.y - 30);
+                                game.combo = 0;
+                            }
+                            break;
+                            
+                        case 2: // 数据结构攻击
+                            enemy.state = 'skill2';
+                            // 范围攻击
+                            const radius = 80;
+                            const dx = player.x - enemy.x;
+                            const dy = player.y - enemy.y;
+                            const distance = Math.sqrt(dx * dx + dy * dy);
+                            
+                            if (distance < radius) {
+                                const damage = 25 + Math.floor(Math.random() * 15);
+                                player.health -= damage;
+                                player.state = 'hit';
+                                createDamageText(player.x, player.y - 50, damage);
+                                createHitEffect(player.x, player.y - 30);
+                                game.combo = 0;
+                            }
+                            break;
+                    }
+                    
+                    // 重置敌人状态
+                    setTimeout(() => {
+                        enemy.isAttacking = false;
+                        if (enemy.state === 'attacking' || enemy.state === 'skill1' || enemy.state === 'skill2') {
+                            enemy.state = 'idle';
+                        }
+                    }, 1000);
+                } else {
+                    enemy.state = 'idle';
+                }
+            }
+            
+            // 边界检查
+            if (enemy.x < 50) enemy.x = 50;
+            if (enemy.x > canvas.width - 150) enemy.x = canvas.width - 150;
+            if (enemy.y < 100) enemy.y = 100;
+            if (enemy.y > canvas.height - 200) enemy.y = canvas.height - 200;
+        }
+
+        // 更新游戏状态
+        function updateGame() {
+            const { player, enemy, game } = gameData;
+            
+            if (!game.isRunning) return;
+            
+            // 更新技能冷却
+            Object.keys(game.skillCooldowns).forEach(skill => {
+                if (game.skillCooldowns[skill] > 0) {
+                    game.skillCooldowns[skill]--;
+                }
+            });
+            
+            // 更新技能按钮冷却显示
+            updateSkillCooldowns();
+            
+            // 玩家移动
+            if (game.keys['w'] && player.y > 100) {
+                player.y -= player.speed;
+                if (player.state !== 'attacking' && !player.state.startsWith('skill')) {
+                    player.state = 'running';
+                }
+            }
+            if (game.keys['s'] && player.y < canvas.height - 150) {
+                player.y += player.speed;
+                if (player.state !== 'attacking' && !player.state.startsWith('skill')) {
+                    player.state = 'running';
+                }
+            }
+            if (game.keys['a'] && player.x > 50) {
+                player.x -= player.speed;
+                player.direction = 'left';
+                if (player.state !== 'attacking' && !player.state.startsWith('skill')) {
+                    player.state = 'running';
+                }
+            }
+            if (game.keys['d'] && player.x < canvas.width - 150) {
+                player.x += player.speed;
+                player.direction = 'right';
+                if (player.state !== 'attacking' && !player.state.startsWith('skill')) {
+                    player.state = 'running';
+                }
+            }
+            
+            // 如果没有按键，设置为idle状态
+            if (!game.keys['w'] && !game.keys['s'] && !game.keys['a'] && !game.keys['d']) {
+                if (player.state === 'running') {
+                    player.state = 'idle';
+                }
+            }
+            
+            // 玩家攻击
+            if (game.keys['i'] && !player.isAttacking && !player.state.startsWith('skill')) {
+                player.isAttacking = true;
+                player.state = 'attacking';
+                
+                // 检查是否击中敌人
+                const attackRange = {
+                    x: player.direction === 'right' ? player.x + player.width : player.x - 40,
+                    y: player.y,
+                    width: 40,
+                    height: 80
+                };
+                
+                if (checkCollision(attackRange, enemy)) {
+                    const damage = 10 + Math.floor(Math.random() * 5);
+                    enemy.health -= damage;
+                    enemy.state = 'hit';
+                    createDamageText(enemy.x, enemy.y - 50, damage);
+                    createHitEffect(enemy.x, enemy.y - 30);
+                    game.score += damage;
+                    game.combo++;
+                    
+                    // 连击奖励
+                    if (game.combo > game.maxCombo) {
+                        game.maxCombo = game.combo;
+                    }
+                    if (game.combo > 5) {
+                        game.score += Math.floor(damage * (game.combo / 5));
+                    }
+                }
+                
+                // 重置攻击状态
+                setTimeout(() => {
+                    player.isAttacking = false;
+                    if (player.state === 'attacking') {
+                        player.state = 'idle';
+                    }
+                }, 500);
+            }
+            
+            // 技能释放
+            if (game.keys['j'] && !game.skillCooldowns.skill1) {
+                usePlayerSkill('skill1');
+            }
+            if (game.keys['k'] && !game.skillCooldowns.skill2) {
+                usePlayerSkill('skill2');
+            }
+            if (game.keys['l'] && !game.skillCooldowns.skill3) {
+                usePlayerSkill('skill3');
+            }
+            
+            // 更新敌人AI
+            updateEnemyAI();
+            
+            // 更新计时器
+            if (game.time > 0) {
+                game.time--;
+            }
+            
+            // 检查游戏结束条件
+            if (player.health <= 0) {
+                player.health = 0;
+                game.isRunning = false;
+                showGameOver();
+            }
+            
+            if (enemy.health <= 0) {
+                enemy.health = 0;
+                game.isRunning = false;
+                showVictory();
+            }
+            
+            if (game.time <= 0) {
+                game.isRunning = false;
+                if (player.health > enemy.health) {
+                    showVictory();
+                } else {
+                    showGameOver();
+                }
+            }
+            
+            // 更新UI
+            updateUI();
+        }
+
+        // 更新UI显示
+        function updateUI() {
+            const { player, enemy, game } = gameData;
+            
+            document.getElementById('playerHealth').textContent = Math.max(0, player.health) + '%';
+            document.getElementById('playerHealthBar').style.width = (player.health / player.maxHealth * 100) + '%';
+            
+            document.getElementById('enemyHealth').textContent = Math.max(0, enemy.health) + '%';
+            document.getElementById('enemyHealthBar').style.width = (enemy.health / enemy.maxHealth * 100) + '%';
+            
+            document.getElementById('timer').textContent = game.time;
+            document.getElementById('score').textContent = game.score;
+        }
+
+        // 显示游戏结束
+        function showGameOver() {
+            document.getElementById('finalScore').textContent = gameData.game.score;
+            document.getElementById('gameOverModal').classList.add('active');
+        }
+
+        // 显示胜利
+        function showVictory() {
+            document.getElementById('victoryScore').textContent = gameData.game.score;
+            document.getElementById('victoryModal').classList.add('active');
+        }
+
+        // 游戏渲染
+        function renderGame() {
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            
+            // 绘制玩家
+            drawPlayer(gameData.player.x, gameData.player.y, gameData.player.direction, gameData.player.state, gameData.player.animationFrame);
+            
+            // 绘制敌人
+            drawEnemy(gameData.enemy.x, gameData.enemy.y, gameData.enemy.direction, gameData.enemy.state, gameData.enemy.animationFrame);
+            
+            // 绘制连击数
+            if (gameData.game.combo > 1) {
+                ctx.save();
+                ctx.fillStyle = '#ffd700';
+                ctx.font = 'bold 24px Orbitron';
+                ctx.textAlign = 'center';
+                ctx.fillText(`连击: ${gameData.game.combo}`, canvas.width / 2, 80);
+                
+                if (gameData.game.combo > 5) {
+                    ctx.fillStyle = '#ff6b6b';
+                    ctx.font = 'bold 18px Orbitron';
+                    ctx.fillText(`MAX COMBO: ${gameData.game.maxCombo}`, canvas.width / 2, 110);
+                }
+                ctx.restore();
+            }
+        }
+
+        // 游戏循环
+        function gameLoop() {
+            updateGame();
+            renderGame();
+            requestAnimationFrame(gameLoop);
+        }
+
+        // 键盘事件监听
+        document.addEventListener('keydown', (e) => {
+            gameData.game.keys[e.key.toLowerCase()] = true;
+        });
+
+        document.addEventListener('keyup', (e) => {
+            gameData.game.keys[e.key.toLowerCase()] = false;
+        });
+
+        // 按钮事件监听
+        document.getElementById('backBtn').addEventListener('click', () => {
             window.location.href = 'index.html';
         });
 
-        // 自动返回（1.5秒后）
-        setTimeout(function() {
+        document.getElementById('retryBtn').addEventListener('click', () => {
+            location.reload();
+        });
+
+        document.getElementById('homeBtn').addEventListener('click', () => {
             window.location.href = 'index.html';
-        }, 1500);
+        });
+
+        document.getElementById('nextLevelBtn').addEventListener('click', () => {
+            window.location.href = 'noip.html';
+        });
+
+        document.getElementById('victoryHomeBtn').addEventListener('click', () => {
+            window.location.href = 'index.html';
+        });
+
+        // 技能按钮点击
+        document.getElementById('skill1Btn').addEventListener('click', () => {
+            if (!gameData.game.skillCooldowns.skill1) {
+                usePlayerSkill('skill1');
+            }
+        });
+
+        document.getElementById('skill2Btn').addEventListener('click', () => {
+            if (!gameData.game.skillCooldowns.skill2) {
+                usePlayerSkill('skill2');
+            }
+        });
+
+        document.getElementById('skill3Btn').addEventListener('click', () => {
+            if (!gameData.game.skillCooldowns.skill3) {
+                usePlayerSkill('skill3');
+            }
+        });
 
         // 禁用右键和Ctrl键
-        document.addEventListener('contextmenu', function(e) {
+        document.addEventListener('contextmenu', (e) => {
             e.preventDefault();
             return false;
         });
 
-        document.addEventListener('keydown', function(e) {
+        document.addEventListener('keydown', (e) => {
             if (e.ctrlKey && ['u', 'c', 'x', 's', 'a', 'z'].includes(e.key.toLowerCase())) {
                 e.preventDefault();
                 return false;
@@ -136,6 +1385,9 @@
                 return false;
             }
         });
+
+        // 开始游戏
+        gameLoop();
     </script>
 </body>
 </html>
