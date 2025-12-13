@@ -3,195 +3,96 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Fight CCF - 编程对战游戏</title>
+    <title>Fight CCF - 编程格斗游戏</title>
     <script src="https://cdn.tailwindcss.com"></script>
-    <link href="https://cdn.jsdelivr.net/npm/font-awesome@4.7.0/css/font-awesome.min.css" rel="stylesheet">
-    <script>
-        tailwind.config = {
-            theme: {
-                extend: {
-                    colors: {
-                        primary: '#3B82F6',
-                        secondary: '#10B981',
-                        dark: '#1F2937',
-                        light: '#F3F4F6',
-                        danger: '#EF4444',
-                        success: '#22C55E',
-                        warning: '#F59E0B',
-                        info: '#3B82F6'
-                    },
-                    fontFamily: {
-                        sans: ['Inter', 'system-ui', 'sans-serif'],
-                    },
-                    animation: {
-                        'glow': 'glow 2s ease-in-out infinite alternate',
-                        'float': 'float 3s ease-in-out infinite',
-                        'pulse-slow': 'pulse 3s cubic-bezier(0.4, 0, 0.6, 1) infinite',
-                    },
-                    keyframes: {
-                        glow: {
-                            '0%': { boxShadow: '0 0 5px #fff, 0 0 10px #fff, 0 0 15px #0073e6, 0 0 20px #0073e6' },
-                            '100%': { boxShadow: '0 0 10px #fff, 0 0 20px #fff, 0 0 30px #0073e6, 0 0 40px #0073e6' }
-                        },
-                        float: {
-                            '0%, 100%': { transform: 'translateY(0)' },
-                            '50%': { transform: 'translateY(-10px)' }
-                        }
-                    }
-                }
-            }
-        }
-    </script>
-    <style type="text/tailwindcss">
-        @layer utilities {
-            .text-shadow {
-                text-shadow: 0 2px 4px rgba(0,0,0,0.1);
-            }
-            .text-shadow-lg {
-                text-shadow: 0 4px 8px rgba(0,0,0,0.2);
-            }
-            .glass {
-                background: rgba(255, 255, 255, 0.25);
-                backdrop-filter: blur(10px);
-                border: 1px solid rgba(255, 255, 255, 0.18);
-            }
-            .computer-hover {
-                transition: all 0.3s ease;
-            }
-            .computer-hover:hover {
-                transform: translateY(-5px) scale(1.02);
-            }
-            .lock-overlay {
-                background: rgba(0, 0, 0, 0.7);
-                transition: opacity 0.3s ease;
-            }
-            .character-card {
-                transition: all 0.3s ease;
-            }
-            .character-card:hover {
-                transform: translateY(-5px);
-            }
-        }
-    </style>
+    <script src="https://cdn.jsdelivr.net/npm/lucide@0.544.0/dist/umd/lucide.min.js"></script>
     <style>
-        body {
-            background: linear-gradient(135deg, #1e3c72 0%, #2a5298 100%);
-            min-height: 100vh;
-            overflow-x: hidden;
+        @import url('https://fonts.googleapis.com/css2?family=Orbitron:wght@400;500;600;700&family=Noto+Sans+SC:wght@300;400;500;700&display=swap');
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
         }
-        
-        .matrix-bg {
+
+        body {
+            font-family: 'Noto Sans SC', sans-serif;
+            background: #0a0a0a;
+            color: #fff;
+            overflow: hidden;
+        }
+
+        .orbitron {
+            font-family: 'Orbitron', sans-serif;
+        }
+
+        .bg-main {
+            background: #000;
+            position: relative;
+            overflow: hidden;
+        }
+
+        #digitalRain {
             position: fixed;
             top: 0;
             left: 0;
             width: 100%;
             height: 100%;
             z-index: -1;
-            opacity: 0.1;
+            opacity: 0.3;
         }
-        
+
+        .glass {
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+        }
+
         .computer {
+            transition: all 0.3s ease;
             cursor: pointer;
             position: relative;
-            overflow: hidden;
-            border-radius: 10px;
-            box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
         }
-        
-        .computer img {
-            width: 100%;
-            height: 100%;
-            object-fit: cover;
-            transition: transform 0.3s ease;
+
+        .computer:hover {
+            transform: translateY(-10px) scale(1.05);
+            box-shadow: 0 20px 40px rgba(0, 255, 255, 0.3);
         }
-        
-        .computer:hover img {
-            transform: scale(1.05);
-        }
-        
-        .computer-label {
+
+        .computer.locked::after {
+            content: '';
             position: absolute;
-            bottom: 0;
-            left: 0;
-            right: 0;
-            background: rgba(0, 0, 0, 0.7);
-            color: white;
-            padding: 8px;
-            text-align: center;
-            font-weight: bold;
-            transition: background 0.3s ease;
-        }
-        
-        .computer:hover .computer-label {
-            background: rgba(59, 130, 246, 0.9);
-        }
-        
-        .lock-icon {
-            position: absolute;
-            top: 50%;
-            left: 50%;
-            transform: translate(-50%, -50%);
-            font-size: 3rem;
-            color: white;
-            text-shadow: 0 0 10px rgba(0, 0, 0, 0.5);
-        }
-        
-        .modal {
-            display: none;
-            position: fixed;
             top: 0;
             left: 0;
-            width: 100%;
-            height: 100%;
+            right: 0;
+            bottom: 0;
             background: rgba(0, 0, 0, 0.7);
-            z-index: 1000;
-            backdrop-filter: blur(5px);
+            border-radius: 15px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
         }
-        
-        .modal-content {
+
+        .computer.locked::before {
+            content: '🔒';
             position: absolute;
             top: 50%;
             left: 50%;
             transform: translate(-50%, -50%);
-            background: white;
-            padding: 2rem;
-            border-radius: 10px;
-            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
-            width: 90%;
-            max-width: 500px;
-            animation: modalSlideIn 0.3s ease-out;
+            font-size: 2rem;
+            z-index: 10;
         }
-        
-        @keyframes modalSlideIn {
-            from {
-                opacity: 0;
-                transform: translate(-50%, -60%);
-            }
-            to {
-                opacity: 1;
-                transform: translate(-50%, -50%);
-            }
+
+        .character {
+            transition: all 0.3s ease;
+            cursor: pointer;
         }
-        
-        .toast {
-            position: fixed;
-            top: 20px;
-            right: 20px;
-            background: #1F2937;
-            color: white;
-            padding: 1rem 1.5rem;
-            border-radius: 5px;
-            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
-            z-index: 1001;
-            transform: translateX(400px);
-            transition: transform 0.3s ease;
+
+        .character:hover {
+            transform: scale(1.1);
         }
-        
-        .toast.show {
-            transform: translateX(0);
-        }
-        
-        .character-modal {
+
+        .modal {
             display: none;
             position: fixed;
             top: 0;
@@ -202,618 +103,478 @@
             z-index: 1000;
             backdrop-filter: blur(5px);
         }
-        
-        .character-modal-content {
-            position: absolute;
-            top: 50%;
-            left: 50%;
-            transform: translate(-50%, -50%);
-            background: white;
-            padding: 2rem;
-            border-radius: 10px;
-            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
-            width: 90%;
-            max-width: 800px;
-            max-height: 80vh;
-            overflow-y: auto;
-            animation: modalSlideIn 0.3s ease-out;
-        }
-        
-        .skill-icon {
-            width: 50px;
-            height: 50px;
-            border-radius: 50%;
-            background: #3B82F6;
+
+        .modal.active {
             display: flex;
             align-items: center;
             justify-content: center;
-            color: white;
-            font-size: 1.5rem;
-            margin-right: 1rem;
         }
-        
-        /* 禁用右键和Ctrl键 */
-        body {
-            -webkit-user-select: none;
-            -moz-user-select: none;
-            -ms-user-select: none;
-            user-select: none;
+
+        .btn {
+            transition: all 0.3s ease;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .btn::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.2), transparent);
+            transition: left 0.5s;
+        }
+
+        .btn:hover::before {
+            left: 100%;
+        }
+
+        .btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 20px rgba(0, 255, 255, 0.4);
+        }
+
+        .key-display {
+            font-family: 'Courier New', monospace;
+            font-size: 0.8rem;
+            color: #00ff00;
+            word-break: break-all;
+        }
+
+        .floating {
+            animation: float 3s ease-in-out infinite;
+        }
+
+        @keyframes float {
+            0%, 100% { transform: translateY(0px); }
+            50% { transform: translateY(-10px); }
+        }
+
+        .glow-text {
+            text-shadow: 0 0 10px #00ffff, 0 0 20px #00ffff, 0 0 30px #00ffff;
+        }
+
+        .copy-btn {
+            transition: all 0.2s ease;
+        }
+
+        .copy-btn:hover {
+            color: #00ff00;
+            transform: scale(1.1);
+        }
+
+        .notification {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            padding: 15px 20px;
+            background: #22c55e;
+            color: white;
+            border-radius: 8px;
+            z-index: 2000;
+            transform: translateX(400px);
+            transition: transform 0.3s ease;
+        }
+
+        .notification.show {
+            transform: translateX(0);
         }
     </style>
 </head>
-<body class="font-sans text-gray-100">
-    <!-- 矩阵背景效果 -->
-    <canvas id="matrix-bg" class="matrix-bg"></canvas>
-    
-    <!-- 顶部导航 -->
-    <header class="glass sticky top-0 z-50 px-6 py-4 flex justify-between items-center">
-        <div class="flex items-center space-x-2">
-            <i class="fa fa-code text-2xl text-primary"></i>
-            <h1 class="text-2xl font-bold text-shadow">Fight CCF</h1>
-        </div>
-        <div class="flex items-center space-x-4">
-            <div id="user-info" class="hidden items-center space-x-2">
-                <span id="username" class="font-semibold"></span>
-                <div class="relative group">
-                    <button class="flex items-center space-x-1 text-sm bg-dark/50 px-3 py-1 rounded-full hover:bg-dark/80 transition">
-                        <span id="secret-key-preview">****</span>
-                        <i class="fa fa-copy"></i>
-                    </button>
-                    <div class="absolute right-0 mt-2 w-48 bg-dark rounded-md shadow-lg opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-300 z-50">
-                        <div class="py-1">
-                            <button id="copy-secret-key" class="block px-4 py-2 text-sm text-gray-200 hover:bg-gray-700 w-full text-left">
-                                复制完整秘钥
-                            </button>
-                            <button id="refresh-secret-key" class="block px-4 py-2 text-sm text-gray-200 hover:bg-gray-700 w-full text-left">
-                                刷新秘钥
-                            </button>
-                        </div>
-                    </div>
+<body class="bg-main">
+    <!-- 账号模态框 -->
+    <div id="accountModal" class="modal active">
+        <div class="glass rounded-2xl p-8 max-w-md w-full mx-4">
+            <h2 class="text-3xl font-bold mb-6 text-center glow-text orbitron">Fight CCF</h2>
+            <div class="space-y-4">
+                <div>
+                    <label class="block text-sm font-medium mb-2">用户名</label>
+                    <input type="text" id="username" class="w-full px-4 py-2 rounded-lg bg-black/50 border border-cyan-500 focus:outline-none focus:ring-2 focus:ring-cyan-400 text-white">
                 </div>
-            </div>
-            <button id="logout-btn" class="hidden bg-danger/80 hover:bg-danger text-white px-4 py-2 rounded-lg transition">
-                退出
-            </button>
-        </div>
-    </header>
-    
-    <!-- 主要内容 -->
-    <main class="container mx-auto px-4 py-8">
-        <!-- 登录/创建账号模态框 -->
-        <div id="auth-modal" class="modal">
-            <div class="modal-content bg-dark text-white">
-                <div class="flex justify-between items-center mb-6">
-                    <h2 class="text-2xl font-bold">欢迎来到 Fight CCF</h2>
-                    <button id="close-auth-modal" class="text-gray-400 hover:text-white text-2xl">&times;</button>
+                <div id="keySection" class="hidden">
+                    <label class="block text-sm font-medium mb-2">秘钥</label>
+                    <input type="text" id="key" class="w-full px-4 py-2 rounded-lg bg-black/50 border border-cyan-500 focus:outline-none focus:ring-2 focus:ring-cyan-400 text-white">
                 </div>
-                <div class="flex mb-6">
-                    <button id="login-tab" class="flex-1 py-2 text-center border-b-2 border-primary font-medium">登录</button>
-                    <button id="create-tab" class="flex-1 py-2 text-center border-b-2 border-gray-600 font-medium">创建账号</button>
+                <div class="flex space-x-4 pt-4">
+                    <button id="loginBtn" class="btn flex-1 bg-cyan-600 hover:bg-cyan-700 text-white py-2 rounded-lg font-medium">登录</button>
+                    <button id="createBtn" class="btn flex-1 bg-blue-600 hover:bg-blue-700 text-white py-2 rounded-lg font-medium">创建账号</button>
                 </div>
-                <div id="login-form">
-                    <div class="mb-4">
-                        <label for="login-secret-key" class="block text-sm font-medium mb-1">秘钥</label>
-                        <input type="text" id="login-secret-key" class="w-full px-4 py-2 bg-gray-700 border border-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary text-white" placeholder="输入你的秘钥">
-                    </div>
-                    <button id="login-btn" class="w-full bg-primary hover:bg-blue-600 text-white py-2 rounded-lg transition">登录</button>
+                <div class="text-center text-sm text-gray-400 mt-4">
+                    <p>登录将同步你的游戏进度</p>
                 </div>
-                <div id="create-form" class="hidden">
-                    <div class="mb-4">
-                        <label for="create-username" class="block text-sm font-medium mb-1">用户名</label>
-                        <input type="text" id="create-username" class="w-full px-4 py-2 bg-gray-700 border border-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary text-white" placeholder="输入用户名">
-                    </div>
-                    <button id="create-btn" class="w-full bg-secondary hover:bg-green-600 text-white py-2 rounded-lg transition">创建账号</button>
-                </div>
-            </div>
-        </div>
-        
-        <!-- 计算机区域 -->
-        <div id="computers-section" class="hidden">
-            <h2 class="text-3xl font-bold text-center mb-8 text-shadow-lg">选择挑战</h2>
-            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-                <!-- CSP-J -->
-                <div class="computer computer-hover" data-level="1" data-unlocked="true">
-                    <img src="https://p3-flow-imagex-sign.byteimg.com/tos-cn-i-a9rns2rl98/rc/pc/super_tool/2024-09-11/1726046182112343050.jpeg~tplv-a9rns2rl98-image.image?rcl=202412131712341234567890&rk3s=8e244e95&rrcfp=f06b921b&x-expires=1757582184&x-signature=w9y5lYjqL2wFd4J5FzHm%2FwW%2F%2Fg%3D" alt="CSP-J">
-                    <div class="computer-label">CSP-J</div>
-                </div>
-                
-                <!-- CSP-S -->
-                <div class="computer computer-hover" data-level="2" data-unlocked="false">
-                    <div class="lock-overlay absolute inset-0 flex items-center justify-center">
-                        <i class="fa fa-lock lock-icon"></i>
-                    </div>
-                    <img src="https://p3-flow-imagex-sign.byteimg.com/tos-cn-i-a9rns2rl98/rc/pc/super_tool/2024-09-11/1726046182112343050.jpeg~tplv-a9rns2rl98-image.image?rcl=202412131712341234567890&rk3s=8e244e95&rrcfp=f06b921b&x-expires=1757582184&x-signature=w9y5lYjqL2wFd4J5FzHm%2FwW%2F%2Fg%3D" alt="CSP-S">
-                    <div class="computer-label">CSP-S</div>
-                </div>
-                
-                <!-- NOIP -->
-                <div class="computer computer-hover" data-level="3" data-unlocked="false">
-                    <div class="lock-overlay absolute inset-0 flex items-center justify-center">
-                        <i class="fa fa-lock lock-icon"></i>
-                    </div>
-                    <img src="https://p3-flow-imagex-sign.byteimg.com/tos-cn-i-a9rns2rl98/rc/pc/super_tool/2024-09-11/1726046182112343050.jpeg~tplv-a9rns2rl98-image.image?rcl=202412131712341234567890&rk3s=8e244e95&rrcfp=f06b921b&x-expires=1757582184&x-signature=w9y5lYjqL2wFd4J5FzHm%2FwW%2F%2Fg%3D" alt="NOIP">
-                    <div class="computer-label">NOIP</div>
-                </div>
-                
-                <!-- 省选 -->
-                <div class="computer computer-hover" data-level="4" data-unlocked="false">
-                    <div class="lock-overlay absolute inset-0 flex items-center justify-center">
-                        <i class="fa fa-lock lock-icon"></i>
-                    </div>
-                    <img src="https://p3-flow-imagex-sign.byteimg.com/tos-cn-i-a9rns2rl98/rc/pc/super_tool/2024-09-11/1726046182112343050.jpeg~tplv-a9rns2rl98-image.image?rcl=202412131712341234567890&rk3s=8e244e95&rrcfp=f06b921b&x-expires=1757582184&x-signature=w9y5lYjqL2wFd4J5FzHm%2FwW%2F%2Fg%3D" alt="省选">
-                    <div class="computer-label">省选</div>
-                </div>
-                
-                <!-- NOI -->
-                <div class="computer computer-hover" data-level="5" data-unlocked="false">
-                    <div class="lock-overlay absolute inset-0 flex items-center justify-center">
-                        <i class="fa fa-lock lock-icon"></i>
-                    </div>
-                    <img src="https://p3-flow-imagex-sign.byteimg.com/tos-cn-i-a9rns2rl98/rc/pc/super_tool/2024-09-11/1726046182112343050.jpeg~tplv-a9rns2rl98-image.image?rcl=202412131712341234567890&rk3s=8e244e95&rrcfp=f06b921b&x-expires=1757582184&x-signature=w9y5lYjqL2wFd4J5FzHm%2FwW%2F%2Fg%3D" alt="NOI">
-                    <div class="computer-label">NOI</div>
-                </div>
-                
-                <!-- CCF主席 -->
-                <div class="computer computer-hover" data-level="6" data-unlocked="false">
-                    <div class="lock-overlay absolute inset-0 flex items-center justify-center">
-                        <i class="fa fa-lock lock-icon"></i>
-                    </div>
-                    <img src="https://p3-flow-imagex-sign.byteimg.com/tos-cn-i-a9rns2rl98/rc/pc/super_tool/2024-09-11/1726046182112343050.jpeg~tplv-a9rns2rl98-image.image?rcl=202412131712341234567890&rk3s=8e244e95&rrcfp=f06b921b&x-expires=1757582184&x-signature=w9y5lYjqL2wFd4J5FzHm%2FwW%2F%2Fg%3D" alt="CCF主席">
-                    <div class="computer-label">CCF主席</div>
-                </div>
-            </div>
-        </div>
-        
-        <!-- 角色选择区域 -->
-        <div id="characters-section" class="mt-12">
-            <div class="flex justify-between items-center mb-6">
-                <h2 class="text-2xl font-bold text-shadow">已解锁角色</h2>
-                <button id="open-characters-modal" class="bg-info hover:bg-blue-600 text-white px-4 py-2 rounded-lg transition flex items-center space-x-2">
-                    <i class="fa fa-users"></i>
-                    <span>查看详情</span>
-                </button>
-            </div>
-            <div id="characters-grid" class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-4">
-                <!-- 角色卡片将通过JS动态生成 -->
-                <div class="character-card bg-dark/50 rounded-lg p-4 text-center cursor-pointer hover:bg-dark/80 transition">
-                    <div class="w-16 h-16 mx-auto bg-gray-700 rounded-full mb-2 flex items-center justify-center">
-                        <i class="fa fa-user text-2xl"></i>
-                    </div>
-                    <p class="text-sm">未解锁</p>
-                </div>
-                <div class="character-card bg-dark/50 rounded-lg p-4 text-center cursor-pointer hover:bg-dark/80 transition">
-                    <div class="w-16 h-16 mx-auto bg-gray-700 rounded-full mb-2 flex items-center justify-center">
-                        <i class="fa fa-user text-2xl"></i>
-                    </div>
-                    <p class="text-sm">未解锁</p>
-                </div>
-                <div class="character-card bg-dark/50 rounded-lg p-4 text-center cursor-pointer hover:bg-dark/80 transition">
-                    <div class="w-16 h-16 mx-auto bg-gray-700 rounded-full mb-2 flex items-center justify-center">
-                        <i class="fa fa-user text-2xl"></i>
-                    </div>
-                    <p class="text-sm">未解锁</p>
-                </div>
-                <div class="character-card bg-dark/50 rounded-lg p-4 text-center cursor-pointer hover:bg-dark/80 transition">
-                    <div class="w-16 h-16 mx-auto bg-gray-700 rounded-full mb-2 flex items-center justify-center">
-                        <i class="fa fa-user text-2xl"></i>
-                    </div>
-                    <p class="text-sm">未解锁</p>
-                </div>
-                <div class="character-card bg-dark/50 rounded-lg p-4 text-center cursor-pointer hover:bg-dark/80 transition">
-                    <div class="w-16 h-16 mx-auto bg-gray-700 rounded-full mb-2 flex items-center justify-center">
-                        <i class="fa fa-user text-2xl"></i>
-                    </div>
-                    <p class="text-sm">未解锁</p>
-                </div>
-                <div class="character-card bg-dark/50 rounded-lg p-4 text-center cursor-pointer hover:bg-dark/80 transition">
-                    <div class="w-16 h-16 mx-auto bg-gray-700 rounded-full mb-2 flex items-center justify-center">
-                        <i class="fa fa-user text-2xl"></i>
-                    </div>
-                    <p class="text-sm">未解锁</p>
-                </div>
-            </div>
-        </div>
-    </main>
-    
-    <!-- 角色详情模态框 -->
-    <div id="characters-modal" class="character-modal">
-        <div class="character-modal-content bg-dark text-white">
-            <div class="flex justify-between items-center mb-6">
-                <h2 class="text-2xl font-bold">角色详情</h2>
-                <button id="close-characters-modal" class="text-gray-400 hover:text-white text-2xl">&times;</button>
-            </div>
-            <div id="character-details" class="space-y-6">
-                <!-- 角色详情将通过JS动态生成 -->
             </div>
         </div>
     </div>
-    
-    <!-- Toast提示 -->
-    <div id="toast" class="toast"></div>
-    
+
+    <!-- 角色详情模态框 -->
+    <div id="characterModal" class="modal">
+        <div class="glass rounded-2xl p-8 max-w-lg w-full mx-4">
+            <div class="flex justify-between items-center mb-6">
+                <h3 class="text-2xl font-bold orbitron" id="characterName">角色详情</h3>
+                <button id="closeCharacterModal" class="text-gray-400 hover:text-white">
+                    <i data-lucide="x" class="w-6 h-6"></i>
+                </button>
+            </div>
+            <div class="flex items-center space-x-6 mb-6">
+                <img id="characterImage" src="https://p3-flow-imagex-sign.byteimg.com/tos-cn-i-a9rns2rl98/rc/pc/super_tool/d60eb7e0ce9745baa66fc43f1214cd41~tplv-a9rns2rl98-image.image?rcl=20251213131030A8FD11621FC82FEA2AB2&rk3s=8e244e95&rrcfp=f06b921b&x-expires=1768194655&x-signature=u1jjuKDmnEOGwUYo4cTGDlGkN9w%3D" alt="角色" class="w-32 h-32 object-contain">
+                <div>
+                    <p class="text-gray-300 mb-2">解锁章节: <span id="unlockChapter">CSP-J</span></p>
+                    <p class="text-gray-300">战斗力: <span id="power">1000</span></p>
+                </div>
+            </div>
+            <div class="space-y-4">
+                <div class="glass rounded-lg p-4">
+                    <h4 class="font-semibold text-cyan-400 mb-2">普攻 (I)</h4>
+                    <p class="text-sm text-gray-300" id="normalAttack">快速编程攻击，造成基础伤害</p>
+                </div>
+                <div class="glass rounded-lg p-4">
+                    <h4 class="font-semibold text-cyan-400 mb-2">一技能 (J)</h4>
+                    <p class="text-sm text-gray-300" id="skill1">循环轰炸：释放多个编程循环，对敌人造成持续伤害</p>
+                </div>
+                <div class="glass rounded-lg p-4">
+                    <h4 class="font-semibold text-cyan-400 mb-2">二技能 (K)</h4>
+                    <p class="text-sm text-gray-300" id="skill2">递归突刺：使用递归算法向前突刺，造成穿透伤害</p>
+                </div>
+                <div class="glass rounded-lg p-4">
+                    <h4 class="font-semibold text-cyan-400 mb-2">三技能 (L)</h4>
+                    <p class="text-sm text-gray-300" id="skill3">算法爆发：调用高级算法，对敌人造成大量伤害并附加debuff</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 主游戏界面 -->
+    <div id="gameContainer" class="hidden h-screen flex flex-col">
+        <!-- 顶部信息栏 -->
+        <div class="glass p-4 flex justify-between items-center">
+            <div class="flex items-center space-x-4">
+                <span class="orbitron text-lg" id="playerName">Player</span>
+                <div class="relative">
+                    <span class="key-display" id="userKey">密钥将显示在这里</span>
+                    <button id="copyKeyBtn" class="copy-btn absolute right-2 top-1/2 transform -translate-y-1/2">
+                        <i data-lucide="copy" class="w-4 h-4"></i>
+                    </button>
+                </div>
+            </div>
+            <div class="flex items-center space-x-6">
+                <div class="text-right">
+                    <p class="text-sm text-gray-400">已解锁章节</p>
+                    <p class="orbitron font-bold" id="unlockedChapters">1/6</p>
+                </div>
+                <div class="text-right">
+                    <p class="text-sm text-gray-400">已解锁角色</p>
+                    <p class="orbitron font-bold" id="unlockedCharacters">1/6</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- 主要内容区 -->
+        <div class="flex-1 flex p-8 gap-8">
+            <!-- 左侧角色选择 -->
+            <div class="glass rounded-2xl p-6 w-64">
+                <h3 class="text-xl font-bold mb-4 orbitron">角色</h3>
+                <div class="space-y-4" id="charactersList">
+                    <div class="character glass rounded-lg p-4 flex items-center space-x-3 cursor-pointer" data-character="cspj">
+                        <img src="https://p3-flow-imagex-sign.byteimg.com/tos-cn-i-a9rns2rl98/rc/pc/super_tool/d60eb7e0ce9745baa66fc43f1214cd41~tplv-a9rns2rl98-image.image?rcl=20251213131030A8FD11621FC82FEA2AB2&rk3s=8e244e95&rrcfp=f06b921b&x-expires=1768194655&x-signature=u1jjuKDmnEOGwUYo4cTGDlGkN9w%3D" alt="CSP-J角色" class="w-12 h-12 object-contain">
+                        <div>
+                            <p class="font-medium">CSP-J选手</p>
+                            <p class="text-xs text-gray-400">已解锁</p>
+                        </div>
+                    </div>
+                    <!-- 其他角色将在解锁后显示 -->
+                </div>
+            </div>
+
+            <!-- 中央章节选择 -->
+            <div class="flex-1 flex items-center justify-center">
+                <div class="grid grid-cols-3 gap-8">
+                    <div class="computer glass rounded-2xl p-6 text-center" data-chapter="cspj">
+                        <div class="floating mb-4">
+                            <i data-lucide="laptop" class="w-16 h-16 mx-auto text-cyan-400"></i>
+                        </div>
+                        <h3 class="text-xl font-bold mb-2 orbitron">CSP-J</h3>
+                        <p class="text-sm text-gray-400">入门级编程挑战</p>
+                        <div class="mt-4 text-xs text-cyan-400">
+                            <p>关卡: 4/4</p>
+                        </div>
+                    </div>
+                    <div class="computer glass rounded-2xl p-6 text-center locked" data-chapter="csps">
+                        <div class="floating mb-4">
+                            <i data-lucide="laptop" class="w-16 h-16 mx-auto text-cyan-400"></i>
+                        </div>
+                        <h3 class="text-xl font-bold mb-2 orbitron">CSP-S</h3>
+                        <p class="text-sm text-gray-400">提高级编程挑战</p>
+                    </div>
+                    <div class="computer glass rounded-2xl p-6 text-center locked" data-chapter="noip">
+                        <div class="floating mb-4">
+                            <i data-lucide="laptop" class="w-16 h-16 mx-auto text-cyan-400"></i>
+                        </div>
+                        <h3 class="text-xl font-bold mb-2 orbitron">NOIP</h3>
+                        <p class="text-sm text-gray-400">全国青少年信息学奥林匹克联赛</p>
+                    </div>
+                    <div class="computer glass rounded-2xl p-6 text-center locked" data-chapter="province">
+                        <div class="floating mb-4">
+                            <i data-lucide="laptop" class="w-16 h-16 mx-auto text-cyan-400"></i>
+                        </div>
+                        <h3 class="text-xl font-bold mb-2 orbitron">省选</h3>
+                        <p class="text-sm text-gray-400">省级选拔考试</p>
+                    </div>
+                    <div class="computer glass rounded-2xl p-6 text-center locked" data-chapter="noi">
+                        <div class="floating mb-4">
+                            <i data-lucide="laptop" class="w-16 h-16 mx-auto text-cyan-400"></i>
+                        </div>
+                        <h3 class="text-xl font-bold mb-2 orbitron">NOI</h3>
+                        <p class="text-sm text-gray-400">全国青少年信息学奥林匹克竞赛</p>
+                    </div>
+                    <div class="computer glass rounded-2xl p-6 text-center locked" data-chapter="ccf">
+                        <div class="floating mb-4">
+                            <i data-lucide="laptop" class="w-16 h-16 mx-auto text-cyan-400"></i>
+                        </div>
+                        <h3 class="text-xl font-bold mb-2 orbitron">CCF主席</h3>
+                        <p class="text-sm text-gray-400">最终挑战</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- 底部按键说明 -->
+        <div class="glass p-4 text-center">
+            <p class="text-sm text-gray-400">按键说明: W上 S下 A左 D右 I普攻 J一技能 K二技能 L三技能</p>
+        </div>
+    </div>
+
+    <!-- 通知 -->
+    <div id="notification" class="notification"></div>
+
+    <!-- 数字雨背景 -->
+    <canvas id="digitalRain"></canvas>
+
     <script>
+        // 初始化Lucide图标
+        lucide.createIcons();
+
         // 游戏数据
-        const gameData = {
-            user: null,
-            characters: [
-                {
-                    id: 1,
-                    name: '递归战士',
-                    description: '擅长递归算法的战士，能够快速解决树形问题',
-                    skills: [
-                        { name: '递归斩击', key: 'I', description: '基础攻击，对敌人造成10点伤害' },
-                        { name: '深度优先搜索', key: 'J', description: '对敌人造成20点伤害，并可能触发连击' },
-                        { name: '分治算法', key: 'K', description: '将敌人分成两部分，分别造成15点伤害' },
-                        { name: '树形结构', key: 'L', description: '召唤树精灵协助战斗，造成30点伤害' }
-                    ],
-                    unlocked: false
-                },
-                {
-                    id: 2,
-                    name: '动态规划师',
-                    description: '能够预测未来的规划师，擅长优化问题',
-                    skills: [
-                        { name: '状态转移', key: 'I', description: '基础攻击，对敌人造成8点伤害' },
-                        { name: '最优子结构', key: 'J', description: '根据敌人状态造成15-25点伤害' },
-                        { name: '记忆化搜索', key: 'K', description: '记录敌人弱点，造成25点伤害' },
-                        { name: '背包问题', key: 'L', description: '将敌人装入背包，造成40点伤害' }
-                    ],
-                    unlocked: false
-                },
-                {
-                    id: 3,
-                    name: '图论大师',
-                    description: '掌控连接的大师，能够操控图的力量',
-                    skills: [
-                        { name: '边的切割', key: 'I', description: '基础攻击，对敌人造成12点伤害' },
-                        { name: '最短路径', key: 'J', description: '快速接近敌人，造成20点伤害' },
-                        { name: '最小生成树', key: 'K', description: '束缚敌人，造成18点伤害并减速' },
-                        { name: '强连通分量', key: 'L', description: '将多个敌人连接起来，造成群体35点伤害' }
-                    ],
-                    unlocked: false
-                },
-                {
-                    id: 4,
-                    name: '数据结构师',
-                    description: '能够构建各种数据结构的工程师',
-                    skills: [
-                        { name: '栈的压入', key: 'I', description: '基础攻击，对敌人造成10点伤害' },
-                        { name: '队列操作', key: 'J', description: '快速攻击，造成15点伤害并击退' },
-                        { name: '二叉搜索', key: 'K', description: '精准打击敌人弱点，造成25点伤害' },
-                        { name: '哈希碰撞', key: 'L', description: '对敌人造成45点伤害，但有冷却时间' }
-                    ],
-                    unlocked: false
-                },
-                {
-                    id: 5,
-                    name: '算法优化师',
-                    description: '追求极致效率的优化专家',
-                    skills: [
-                        { name: '常数优化', key: 'I', description: '快速攻击，对敌人造成8点伤害' },
-                        { name: '复杂度降低', key: 'J', description: '降低敌人防御，造成22点伤害' },
-                        { name: '并行计算', key: 'K', description: '同时攻击多个敌人，每个造成15点伤害' },
-                        { name: '贪心策略', key: 'L', description: '最大化伤害，造成50点伤害' }
-                    ],
-                    unlocked: false
-                },
-                {
-                    id: 6,
-                    name: 'CCF主席',
-                    description: '传说中的最终Boss，拥有无敌的力量',
-                    skills: [
-                        { name: '政策制定', key: 'I', description: '基础攻击，对敌人造成20点伤害' },
-                        { name: '难度调整', key: 'J', description: '改变战场规则，造成30点伤害' },
-                        { name: '评分标准', key: 'K', description: '根据表现给予惩罚，造成40点伤害' },
-                        { name: '终极裁决', key: 'L', description: '全屏攻击，造成100点伤害' }
-                    ],
-                    unlocked: false
-                }
-            ],
-            levels: [
-                { id: 1, name: 'CSP-J', unlocked: true, chapters: 4 },
-                { id: 2, name: 'CSP-S', unlocked: false, chapters: 4 },
-                { id: 3, name: 'NOIP', unlocked: false, chapters: 4 },
-                { id: 4, name: '省选', unlocked: false, chapters: 4 },
-                { id: 5, name: 'NOI', unlocked: false, chapters: 4 },
-                { id: 6, name: 'CCF主席', unlocked: false, chapters: 1 }
-            ]
-        };
-        
-        // DOM元素
-        const authModal = document.getElementById('auth-modal');
-        const loginTab = document.getElementById('login-tab');
-        const createTab = document.getElementById('create-tab');
-        const loginForm = document.getElementById('login-form');
-        const createForm = document.getElementById('create-form');
-        const loginBtn = document.getElementById('login-btn');
-        const createBtn = document.getElementById('create-btn');
-        const closeAuthModal = document.getElementById('close-auth-modal');
-        const userInfo = document.getElementById('user-info');
-        const username = document.getElementById('username');
-        const secretKeyPreview = document.getElementById('secret-key-preview');
-        const copySecretKey = document.getElementById('copy-secret-key');
-        const refreshSecretKey = document.getElementById('refresh-secret-key');
-        const logoutBtn = document.getElementById('logout-btn');
-        const computersSection = document.getElementById('computers-section');
-        const computers = document.querySelectorAll('.computer');
-        const charactersGrid = document.getElementById('characters-grid');
-        const openCharactersModal = document.getElementById('open-characters-modal');
-        const charactersModal = document.getElementById('characters-modal');
-        const closeCharactersModal = document.getElementById('close-characters-modal');
-        const characterDetails = document.getElementById('character-details');
-        const toast = document.getElementById('toast');
-        
-        // 初始化
-        document.addEventListener('DOMContentLoaded', () => {
-            // 检查本地存储中的用户数据
-            const savedUser = localStorage.getItem('fightCCFUser');
-            if (savedUser) {
-                try {
-                    gameData.user = JSON.parse(savedUser);
-                    initializeGame();
-                } catch (e) {
-                    console.error('Failed to parse user data:', e);
-                    showAuthModal();
-                }
-            } else {
-                showAuthModal();
+        let gameData = {
+            username: '',
+            key: '',
+            unlockedChapters: ['cspj'],
+            unlockedCharacters: ['cspj'],
+            currentCharacter: 'cspj',
+            chapterProgress: {
+                cspj: { completedLevels: 4, totalLevels: 4 },
+                csps: { completedLevels: 0, totalLevels: 4 },
+                noip: { completedLevels: 0, totalLevels: 3 },
+                province: { completedLevels: 0, totalLevels: 4 },
+                noi: { completedLevels: 0, totalLevels: 3 },
+                ccf: { completedLevels: 0, totalLevels: 1 }
             }
-            
-            // 初始化矩阵背景
-            initMatrixBackground();
-            
-            // 禁用右键和Ctrl键
-            disableRightClickAndCtrl();
-        });
-        
-        // 显示认证模态框
-        function showAuthModal() {
-            authModal.style.display = 'block';
+        };
+
+        // 角色数据
+        const characterData = {
+            cspj: {
+                name: 'CSP-J选手',
+                image: 'https://p3-flow-imagex-sign.byteimg.com/tos-cn-i-a9rns2rl98/rc/pc/super_tool/d60eb7e0ce9745baa66fc43f1214cd41~tplv-a9rns2rl98-image.image?rcl=20251213131030A8FD11621FC82FEA2AB2&rk3s=8e244e95&rrcfp=f06b921b&x-expires=1768194655&x-signature=u1jjuKDmnEOGwUYo4cTGDlGkN9w%3D',
+                unlockChapter: 'CSP-J',
+                power: 1000,
+                normalAttack: '快速编程攻击，造成基础伤害',
+                skill1: '循环轰炸：释放多个编程循环，对敌人造成持续伤害',
+                skill2: '递归突刺：使用递归算法向前突刺，造成穿透伤害',
+                skill3: '算法爆发：调用高级算法，对敌人造成大量伤害并附加debuff'
+            }
+        };
+
+        // 生成秘钥
+        function generateKey(data) {
+            const str = JSON.stringify(data);
+            return btoa(encodeURIComponent(str).replace(/%([0-9A-F]{2})/g, (match, p1) => 
+                String.fromCharCode(parseInt(p1, 16))
+            ));
         }
-        
-        // 隐藏认证模态框
-        function hideAuthModal() {
-            authModal.style.display = 'none';
+
+        // 解析秘钥
+        function parseKey(key) {
+            try {
+                const str = decodeURIComponent(Array.prototype.map.call(atob(key), (c) => 
+                    '%' + ('00' + c.charCodeAt(0).toString(16)).slice(-2)
+                ).join(''));
+                return JSON.parse(str);
+            } catch (e) {
+                return null;
+            }
         }
-        
-        // 显示角色模态框
-        function showCharactersModal() {
-            charactersModal.style.display = 'block';
-            updateCharacterDetails();
-        }
-        
-        // 隐藏角色模态框
-        function hideCharactersModal() {
-            charactersModal.style.display = 'none';
-        }
-        
-        // 显示Toast提示
-        function showToast(message, type = 'info') {
-            toast.textContent = message;
-            toast.className = `toast ${type === 'error' ? 'bg-danger' : type === 'success' ? 'bg-success' : 'bg-dark'}`;
-            toast.classList.add('show');
+
+        // 显示通知
+        function showNotification(message) {
+            const notification = document.getElementById('notification');
+            notification.textContent = message;
+            notification.classList.add('show');
             setTimeout(() => {
-                toast.classList.remove('show');
+                notification.classList.remove('show');
             }, 3000);
         }
-        
-        // 生成秘钥
-        function generateSecretKey(userData) {
-            // 这里使用简单的编码方式，实际应用中可以使用更复杂的加密算法
-            const data = {
-                username: userData.username,
-                unlockedLevels: userData.unlockedLevels,
-                unlockedCharacters: userData.unlockedCharacters,
-                timestamp: Date.now()
-            };
-            return btoa(JSON.stringify(data));
+
+        // 复制到剪贴板
+        function copyToClipboard(text) {
+            if (navigator.clipboard && navigator.clipboard.writeText) {
+                navigator.clipboard.writeText(text).then(() => {
+                    showNotification('已复制到剪贴板');
+                }).catch(err => {
+                    console.error('复制失败:', err);
+                    // 降级方案
+                    fallbackCopyTextToClipboard(text);
+                });
+            } else {
+                // 降级方案
+                fallbackCopyTextToClipboard(text);
+            }
         }
-        
-        // 解析秘钥
-        function parseSecretKey(secretKey) {
+
+        // 降级复制方案
+        function fallbackCopyTextToClipboard(text) {
+            const textArea = document.createElement('textarea');
+            textArea.value = text;
+            textArea.style.position = 'fixed';
+            textArea.style.left = '-999999px';
+            textArea.style.top = '-999999px';
+            document.body.appendChild(textArea);
+            textArea.focus();
+            textArea.select();
             try {
-                const data = JSON.parse(atob(secretKey));
-                return data;
-            } catch (e) {
-                console.error('Failed to parse secret key:', e);
-                return null;
+                const successful = document.execCommand('copy');
+                if (successful) {
+                    showNotification('已复制到剪贴板');
+                } else {
+                    showNotification('复制失败，请手动复制');
+                }
+            } catch (err) {
+                console.error('复制失败:', err);
+                showNotification('复制失败，请手动复制');
             }
+            document.body.removeChild(textArea);
         }
-        
-        // 创建新用户
-        function createUser(username) {
-            const user = {
-                username: username,
-                secretKey: '',
-                unlockedLevels: [1],
-                unlockedCharacters: [1],
-                currentLevel: 1,
-                currentChapter: 1
-            };
-            
-            // 生成秘钥
-            user.secretKey = generateSecretKey(user);
-            
-            // 更新角色解锁状态
-            gameData.characters[0].unlocked = true;
-            
-            return user;
-        }
-        
-        // 登录用户
-        function loginUser(secretKey) {
-            const userData = parseSecretKey(secretKey);
-            if (!userData) {
-                showToast('无效的秘钥', 'error');
-                return null;
-            }
-            
-            const user = {
-                username: userData.username,
-                secretKey: secretKey,
-                unlockedLevels: userData.unlockedLevels || [1],
-                unlockedCharacters: userData.unlockedCharacters || [1],
-                currentLevel: Math.max(...userData.unlockedLevels) || 1,
-                currentChapter: 1
-            };
-            
-            // 更新游戏数据中的解锁状态
-            user.unlockedLevels.forEach(levelId => {
-                const level = gameData.levels.find(l => l.id === levelId);
-                if (level) level.unlocked = true;
-            });
-            
-            user.unlockedCharacters.forEach(charId => {
-                const character = gameData.characters.find(c => c.id === charId);
-                if (character) character.unlocked = true;
-            });
-            
-            return user;
-        }
-        
+
         // 初始化游戏
-        function initializeGame() {
-            if (!gameData.user) return;
+        function initGame() {
+            document.getElementById('playerName').textContent = gameData.username;
+            document.getElementById('userKey').textContent = gameData.key;
+            document.getElementById('unlockedChapters').textContent = `${gameData.unlockedChapters.length}/6`;
+            document.getElementById('unlockedCharacters').textContent = `${gameData.unlockedCharacters.length}/6`;
             
-            // 更新UI
-            username.textContent = gameData.user.username;
-            secretKeyPreview.textContent = gameData.user.secretKey.substring(0, 8) + '...';
+            // 更新角色列表
+            updateCharactersList();
             
-            userInfo.classList.remove('hidden');
-            userInfo.classList.add('flex');
-            logoutBtn.classList.remove('hidden');
-            computersSection.classList.remove('hidden');
+            // 显示游戏容器
+            document.getElementById('accountModal').classList.remove('active');
+            document.getElementById('gameContainer').classList.remove('hidden');
             
-            // 更新计算机解锁状态
-            updateComputersUnlockStatus();
-            
-            // 更新角色网格
-            updateCharactersGrid();
-            
-            hideAuthModal();
-        }
-        
-        // 更新计算机解锁状态
-        function updateComputersUnlockStatus() {
-            computers.forEach(computer => {
-                const levelId = parseInt(computer.dataset.level);
-                const isUnlocked = gameData.user.unlockedLevels.includes(levelId);
-                const lockOverlay = computer.querySelector('.lock-overlay');
-                
-                if (isUnlocked) {
-                    if (lockOverlay) lockOverlay.style.display = 'none';
-                    computer.style.opacity = '1';
-                } else {
-                    if (lockOverlay) lockOverlay.style.display = 'flex';
-                    computer.style.opacity = '0.7';
-                }
-            });
-        }
-        
-        // 更新角色网格
-        function updateCharactersGrid() {
-            charactersGrid.innerHTML = '';
-            
-            gameData.characters.forEach((character, index) => {
-                const card = document.createElement('div');
-                card.className = `character-card bg-dark/50 rounded-lg p-4 text-center cursor-pointer hover:bg-dark/80 transition ${character.unlocked ? '' : 'opacity-50'}`;
-                
-                if (character.unlocked) {
-                    card.innerHTML = `
-                        <div class="w-16 h-16 mx-auto bg-primary/20 rounded-full mb-2 flex items-center justify-center animate-float">
-                            <i class="fa fa-user-circle text-3xl text-primary"></i>
-                        </div>
-                        <p class="font-medium">${character.name}</p>
-                    `;
-                    card.addEventListener('click', () => {
-                        // 选择角色的逻辑
-                        showToast(`已选择角色: ${character.name}`, 'success');
+            // 重新绑定复制按钮事件（确保在DOM更新后绑定）
+            setTimeout(() => {
+                const copyBtn = document.getElementById('copyKeyBtn');
+                if (copyBtn) {
+                    copyBtn.addEventListener('click', function() {
+                        const keyText = document.getElementById('userKey').textContent;
+                        if (keyText && keyText !== '密钥将显示在这里') {
+                            copyToClipboard(keyText);
+                        } else {
+                            showNotification('暂无可用的秘钥');
+                        }
                     });
-                } else {
-                    card.innerHTML = `
-                        <div class="w-16 h-16 mx-auto bg-gray-700 rounded-full mb-2 flex items-center justify-center">
-                            <i class="fa fa-lock text-2xl"></i>
-                        </div>
-                        <p class="text-sm">未解锁</p>
-                    `;
                 }
-                
-                charactersGrid.appendChild(card);
+            }, 100);
+        }
+
+        // 更新角色列表
+        function updateCharactersList() {
+            const list = document.getElementById('charactersList');
+            list.innerHTML = '';
+            
+            gameData.unlockedCharacters.forEach(charId => {
+                const char = characterData[charId];
+                const div = document.createElement('div');
+                div.className = 'character glass rounded-lg p-4 flex items-center space-x-3 cursor-pointer';
+                div.dataset.character = charId;
+                div.innerHTML = `
+                    <img src="${char.image}" alt="${char.name}" class="w-12 h-12 object-contain">
+                    <div>
+                        <p class="font-medium">${char.name}</p>
+                        <p class="text-xs text-gray-400">已解锁</p>
+                    </div>
+                `;
+                div.addEventListener('click', () => showCharacterDetails(charId));
+                list.appendChild(div);
             });
         }
-        
-        // 更新角色详情
-        function updateCharacterDetails() {
-            characterDetails.innerHTML = '';
+
+        // 显示角色详情
+        function showCharacterDetails(charId) {
+            const char = characterData[charId];
+            document.getElementById('characterName').textContent = char.name;
+            document.getElementById('characterImage').src = char.image;
+            document.getElementById('unlockChapter').textContent = char.unlockChapter;
+            document.getElementById('power').textContent = char.power;
+            document.getElementById('normalAttack').textContent = char.normalAttack;
+            document.getElementById('skill1').textContent = char.skill1;
+            document.getElementById('skill2').textContent = char.skill2;
+            document.getElementById('skill3').textContent = char.skill3;
             
-            gameData.characters.forEach(character => {
-                if (!character.unlocked) return;
-                
-                const characterDiv = document.createElement('div');
-                characterDiv.className = 'bg-gray-800 rounded-lg p-6 mb-6';
-                
-                characterDiv.innerHTML = `
-                    <div class="flex items-start space-x-4">
-                        <div class="w-20 h-20 bg-primary/20 rounded-full flex items-center justify-center flex-shrink-0">
-                            <i class="fa fa-user-circle text-4xl text-primary"></i>
-                        </div>
-                        <div class="flex-1">
-                            <h3 class="text-xl font-bold mb-2">${character.name}</h3>
-                            <p class="text-gray-300 mb-4">${character.description}</p>
-                            <div class="space-y-3">
-                                ${character.skills.map(skill => `
-                                    <div class="flex items-center">
-                                        <div class="skill-icon">
-                                            <span>${skill.key}</span>
-                                        </div>
-                                        <div>
-                                            <p class="font-medium">${skill.name}</p>
-                                            <p class="text-sm text-gray-400">${skill.description}</p>
-                                        </div>
-                                    </div>
-                                `).join('')}
-                            </div>
-                        </div>
-                    </div>
-                `;
-                
-                characterDetails.appendChild(characterDiv);
-            });
-            
-            if (characterDetails.children.length === 0) {
-                characterDetails.innerHTML = `
-                    <div class="text-center py-12">
-                        <i class="fa fa-info-circle text-4xl mb-4 text-gray-500"></i>
-                        <p class="text-gray-400">尚未解锁任何角色</p>
-                        <p class="text-sm text-gray-500 mt-2">完成关卡挑战以解锁更多角色</p>
-                    </div>
-                `;
+            document.getElementById('characterModal').classList.add('active');
+        }
+
+        // 进入章节
+        function enterChapter(chapter) {
+            if (!gameData.unlockedChapters.includes(chapter)) {
+                showNotification('该章节尚未解锁');
+                return;
+            }
+
+            // 检查是否有对应的HTML文件
+            const chapterMap = {
+                cspj: 'cspj.html',
+                csps: 'csps.html',
+                noip: 'noip.html',
+                province: 'province.html',
+                noi: 'noi.html',
+                ccf: 'ccf.html'
+            };
+
+            if (chapter === 'cspj') {
+                // 对于CSP-J，直接跳转
+                window.location.href = chapterMap[chapter];
+            } else {
+                // 对于其他章节，显示未开发提示
+                showNotification('该章节尚未开发');
+                setTimeout(() => {
+                    // 可以添加返回效果
+                }, 1500);
             }
         }
-        
-        // 初始化矩阵背景
-        function initMatrixBackground() {
-            const canvas = document.getElementById('matrix-bg');
+
+        // 数字雨效果
+        function initDigitalRain() {
+            const canvas = document.getElementById('digitalRain');
             const ctx = canvas.getContext('2d');
             
             canvas.width = window.innerWidth;
             canvas.height = window.innerHeight;
             
-            const characters = '01アイウエオカキクケコサシスセソタチツテトナニヌネノハヒフヘホマミムメモヤユヨラリルレロワヲン';
+            const characters = '01';
             const fontSize = 14;
             const columns = canvas.width / fontSize;
             
             const drops = [];
             for (let i = 0; i < columns; i++) {
-                drops[i] = 1;
+                drops[i] = Math.random() * -100;
             }
             
             function draw() {
                 ctx.fillStyle = 'rgba(0, 0, 0, 0.05)';
                 ctx.fillRect(0, 0, canvas.width, canvas.height);
                 
-                ctx.fillStyle = '#0F0';
-                ctx.font = `${fontSize}px monospace`;
+                ctx.fillStyle = '#00ff00';
+                ctx.font = fontSize + 'px monospace';
                 
                 for (let i = 0; i < drops.length; i++) {
                     const text = characters.charAt(Math.floor(Math.random() * characters.length));
@@ -833,155 +594,112 @@
                 canvas.height = window.innerHeight;
             });
         }
-        
-        // 禁用右键和Ctrl键
-        function disableRightClickAndCtrl() {
-            document.addEventListener('contextmenu', (e) => {
+
+        // 事件监听器
+        document.addEventListener('DOMContentLoaded', function() {
+            // 初始化数字雨
+            initDigitalRain();
+            
+            // 确保复制按钮事件正确绑定
+            const bindCopyButton = () => {
+                const copyBtn = document.getElementById('copyKeyBtn');
+                if (copyBtn) {
+                    // 移除可能存在的旧事件监听器
+                    copyBtn.replaceWith(copyBtn.cloneNode(true));
+                    // 重新绑定事件监听器
+                    const newCopyBtn = document.getElementById('copyKeyBtn');
+                    newCopyBtn.addEventListener('click', function() {
+                        const keyText = document.getElementById('userKey').textContent;
+                        if (keyText && keyText !== '密钥将显示在这里') {
+                            copyToClipboard(keyText);
+                        } else {
+                            showNotification('暂无可用的秘钥');
+                        }
+                    });
+                }
+            };
+            
+            // 立即绑定复制按钮
+            bindCopyButton();
+            // 登录按钮
+            document.getElementById('loginBtn').addEventListener('click', function() {
+                const keySection = document.getElementById('keySection');
+                const keyInput = document.getElementById('key');
+                
+                if (keySection.classList.contains('hidden')) {
+                    keySection.classList.remove('hidden');
+                    this.textContent = '确认登录';
+                } else {
+                    const key = keyInput.value.trim();
+                    if (key) {
+                        const parsedData = parseKey(key);
+                        if (parsedData) {
+                            gameData = { ...gameData, ...parsedData };
+                            gameData.key = key;
+                            initGame();
+                        } else {
+                            showNotification('无效的秘钥');
+                        }
+                    } else {
+                        showNotification('请输入秘钥');
+                    }
+                }
+            });
+
+            // 创建账号按钮
+            document.getElementById('createBtn').addEventListener('click', function() {
+                const username = document.getElementById('username').value.trim();
+                if (username) {
+                    gameData.username = username;
+                    gameData.key = generateKey(gameData);
+                    initGame();
+                } else {
+                    showNotification('请输入用户名');
+                }
+            });
+
+            // 复制秘钥按钮
+            document.getElementById('copyKeyBtn').addEventListener('click', function() {
+                copyToClipboard(gameData.key);
+            });
+
+            // 关闭角色详情模态框
+            document.getElementById('closeCharacterModal').addEventListener('click', function() {
+                document.getElementById('characterModal').classList.remove('active');
+            });
+
+            // 章节点击事件
+            document.querySelectorAll('.computer').forEach(computer => {
+                computer.addEventListener('click', function() {
+                    const chapter = this.dataset.chapter;
+                    enterChapter(chapter);
+                });
+            });
+
+            // 禁用右键和Ctrl键
+            document.addEventListener('contextmenu', function(e) {
                 e.preventDefault();
                 return false;
             });
-            
-            document.addEventListener('keydown', (e) => {
-                // 禁用Ctrl+S, Ctrl+C, Ctrl+V等
-                if (e.ctrlKey) {
+
+            document.addEventListener('keydown', function(e) {
+                // 禁用Ctrl+U, Ctrl+C, Ctrl+X, Ctrl+S等
+                if (e.ctrlKey && ['u', 'c', 'x', 's', 'a', 'z'].includes(e.key.toLowerCase())) {
                     e.preventDefault();
                     return false;
                 }
-                
-                // 禁用F12, F5等
-                if ([123, 116, 115, 119, 122].includes(e.keyCode)) {
+                // 禁用F12
+                if (e.key === 'F12') {
                     e.preventDefault();
                     return false;
                 }
             });
-        }
-        
-        // 事件监听器
-        loginTab.addEventListener('click', () => {
-            loginTab.classList.add('border-primary');
-            loginTab.classList.remove('border-gray-600');
-            createTab.classList.add('border-gray-600');
-            createTab.classList.remove('border-primary');
-            loginForm.classList.remove('hidden');
-            createForm.classList.add('hidden');
         });
-        
-        createTab.addEventListener('click', () => {
-            createTab.classList.add('border-primary');
-            createTab.classList.remove('border-gray-600');
-            loginTab.classList.add('border-gray-600');
-            loginTab.classList.remove('border-primary');
-            createForm.classList.remove('hidden');
-            loginForm.classList.add('hidden');
-        });
-        
-        createBtn.addEventListener('click', () => {
-            const usernameInput = document.getElementById('create-username');
-            const usernameValue = usernameInput.value.trim();
-            
-            if (!usernameValue) {
-                showToast('请输入用户名', 'error');
-                return;
-            }
-            
-            gameData.user = createUser(usernameValue);
-            localStorage.setItem('fightCCFUser', JSON.stringify(gameData.user));
-            initializeGame();
-        });
-        
-        loginBtn.addEventListener('click', () => {
-            const secretKeyInput = document.getElementById('login-secret-key');
-            const secretKeyValue = secretKeyInput.value.trim();
-            
-            if (!secretKeyValue) {
-                showToast('请输入秘钥', 'error');
-                return;
-            }
-            
-            const user = loginUser(secretKeyValue);
-            if (user) {
-                gameData.user = user;
-                localStorage.setItem('fightCCFUser', JSON.stringify(user));
-                initializeGame();
-            }
-        });
-        
-        closeAuthModal.addEventListener('click', hideAuthModal);
-        
-        logoutBtn.addEventListener('click', () => {
-            localStorage.removeItem('fightCCFUser');
-            gameData.user = null;
-            
-            // 重置游戏数据
-            gameData.characters.forEach(char => char.unlocked = false);
-            gameData.levels.forEach(level => level.unlocked = false);
-            gameData.levels[0].unlocked = true;
-            
-            userInfo.classList.add('hidden');
-            userInfo.classList.remove('flex');
-            logoutBtn.classList.add('hidden');
-            computersSection.classList.add('hidden');
-            
-            showAuthModal();
-            showToast('已退出登录', 'info');
-        });
-        
-        copySecretKey.addEventListener('click', () => {
-            if (gameData.user) {
-                navigator.clipboard.writeText(gameData.user.secretKey).then(() => {
-                    showToast('秘钥已复制到剪贴板', 'success');
-                }).catch(() => {
-                    showToast('复制失败', 'error');
-                });
-            }
-        });
-        
-        refreshSecretKey.addEventListener('click', () => {
-            if (gameData.user) {
-                gameData.user.secretKey = generateSecretKey(gameData.user);
-                secretKeyPreview.textContent = gameData.user.secretKey.substring(0, 8) + '...';
-                localStorage.setItem('fightCCFUser', JSON.stringify(gameData.user));
-                showToast('秘钥已刷新', 'success');
-            }
-        });
-        
-        openCharactersModal.addEventListener('click', showCharactersModal);
-        closeCharactersModal.addEventListener('click', hideCharactersModal);
-        
-        // 计算机点击事件
-        computers.forEach(computer => {
-            computer.addEventListener('click', () => {
-                const levelId = parseInt(computer.dataset.level);
-                const isUnlocked = gameData.user.unlockedLevels.includes(levelId);
-                
-                if (isUnlocked) {
-                    // 检查是否有对应的关卡HTML文件
-                    // 这里简化处理，只实现CSP-J的关卡
-                    if (levelId === 1) {
-                        window.location.href = 'cspj.html';
-                    } else {
-                        showToast('该关卡尚未开发', 'info');
-                        setTimeout(() => {
-                            // 1.5秒后返回
-                        }, 1500);
-                    }
-                } else {
-                    showToast('请先完成前面的关卡', 'error');
-                }
-            });
-        });
-        
+
         // 点击模态框外部关闭
-        window.addEventListener('click', (e) => {
-            if (e.target === authModal) hideAuthModal();
-            if (e.target === charactersModal) hideCharactersModal();
-        });
-        
-        // 按ESC键关闭模态框
-        document.addEventListener('keydown', (e) => {
-            if (e.key === 'Escape') {
-                hideAuthModal();
-                hideCharactersModal();
+        window.addEventListener('click', function(e) {
+            if (e.target.classList.contains('modal')) {
+                e.target.classList.remove('active');
             }
         });
     </script>
