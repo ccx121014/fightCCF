@@ -1331,7 +1331,7 @@
 
         // 按钮事件监听
         document.getElementById('backBtn').addEventListener('click', () => {
-            window.location.href = 'index.html?return=true';
+            window.location.href = 'index.html';
         });
 
         document.getElementById('retryBtn').addEventListener('click', () => {
@@ -1343,6 +1343,23 @@
         });
 
         document.getElementById('nextLevelBtn').addEventListener('click', () => {
+            // 解锁NOIP章节
+            const gameData = JSON.parse(localStorage.getItem('fightCCF_gameData') || '{}');
+            if (!gameData.unlockedChapters) {
+                gameData.unlockedChapters = [];
+            }
+            if (!gameData.unlockedChapters.includes('noip')) {
+                gameData.unlockedChapters.push('noip');
+                localStorage.setItem('fightCCF_gameData', JSON.stringify(gameData));
+                // 显示解锁通知
+                const notification = document.createElement('div');
+                notification.className = 'notification';
+                notification.textContent = '恭喜解锁NOIP章节！';
+                document.body.appendChild(notification);
+                setTimeout(() => {
+                    document.body.removeChild(notification);
+                }, 2000);
+            }
             window.location.href = 'noip.html';
         });
 
