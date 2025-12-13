@@ -184,67 +184,6 @@
     </style>
 </head>
 <body class="bg-main">
-    <!-- 账号模态框 -->
-    <div id="accountModal" class="modal active">
-        <div class="glass rounded-2xl p-8 max-w-md w-full mx-4">
-            <h2 class="text-3xl font-bold mb-6 text-center glow-text orbitron">Fight CCF</h2>
-            <div class="space-y-4">
-                <div>
-                    <label class="block text-sm font-medium mb-2">用户名</label>
-                    <input type="text" id="username" class="w-full px-4 py-2 rounded-lg bg-black/50 border border-cyan-500 focus:outline-none focus:ring-2 focus:ring-cyan-400 text-white">
-                </div>
-                <div id="keySection" class="hidden">
-                    <label class="block text-sm font-medium mb-2">秘钥</label>
-                    <input type="text" id="key" class="w-full px-4 py-2 rounded-lg bg-black/50 border border-cyan-500 focus:outline-none focus:ring-2 focus:ring-cyan-400 text-white">
-                </div>
-                <div class="flex space-x-4 pt-4">
-                    <button id="loginBtn" class="btn flex-1 bg-cyan-600 hover:bg-cyan-700 text-white py-2 rounded-lg font-medium">登录</button>
-                    <button id="createBtn" class="btn flex-1 bg-blue-600 hover:bg-blue-700 text-white py-2 rounded-lg font-medium">创建账号</button>
-                </div>
-                <div class="text-center text-sm text-gray-400 mt-4">
-                    <p>登录将同步你的游戏进度</p>
-                </div>
-            </div>
-        </div>
-    </div>
-
-    <!-- 角色详情模态框 -->
-    <div id="characterModal" class="modal">
-        <div class="glass rounded-2xl p-8 max-w-lg w-full mx-4">
-            <div class="flex justify-between items-center mb-6">
-                <h3 class="text-2xl font-bold orbitron" id="characterName">角色详情</h3>
-                <button id="closeCharacterModal" class="text-gray-400 hover:text-white">
-                    <i data-lucide="x" class="w-6 h-6"></i>
-                </button>
-            </div>
-            <div class="flex items-center space-x-6 mb-6">
-                <img id="characterImage" src="https://p3-flow-imagex-sign.byteimg.com/tos-cn-i-a9rns2rl98/rc/pc/super_tool/d60eb7e0ce9745baa66fc43f1214cd41~tplv-a9rns2rl98-image.image?rcl=20251213131030A8FD11621FC82FEA2AB2&rk3s=8e244e95&rrcfp=f06b921b&x-expires=1768194655&x-signature=u1jjuKDmnEOGwUYo4cTGDlGkN9w%3D" alt="角色" class="w-32 h-32 object-contain">
-                <div>
-                    <p class="text-gray-300 mb-2">解锁章节: <span id="unlockChapter">CSP-J</span></p>
-                    <p class="text-gray-300">战斗力: <span id="power">1000</span></p>
-                </div>
-            </div>
-            <div class="space-y-4">
-                <div class="glass rounded-lg p-4">
-                    <h4 class="font-semibold text-cyan-400 mb-2">普攻 (I)</h4>
-                    <p class="text-sm text-gray-300" id="normalAttack">快速编程攻击，造成基础伤害</p>
-                </div>
-                <div class="glass rounded-lg p-4">
-                    <h4 class="font-semibold text-cyan-400 mb-2">一技能 (J)</h4>
-                    <p class="text-sm text-gray-300" id="skill1">循环轰炸：释放多个编程循环，对敌人造成持续伤害</p>
-                </div>
-                <div class="glass rounded-lg p-4">
-                    <h4 class="font-semibold text-cyan-400 mb-2">二技能 (K)</h4>
-                    <p class="text-sm text-gray-300" id="skill2">递归突刺：使用递归算法向前突刺，造成穿透伤害</p>
-                </div>
-                <div class="glass rounded-lg p-4">
-                    <h4 class="font-semibold text-cyan-400 mb-2">三技能 (L)</h4>
-                    <p class="text-sm text-gray-300" id="skill3">算法爆发：调用高级算法，对敌人造成大量伤害并附加debuff</p>
-                </div>
-            </div>
-        </div>
-    </div>
-
     <!-- 主游戏界面 -->
     <div id="gameContainer" class="hidden h-screen flex flex-col">
         <!-- 顶部信息栏 -->
@@ -371,6 +310,21 @@
                 ccf: { completedLevels: 0, totalLevels: 1 }
             }
         };
+
+        // 从localStorage加载游戏数据
+        function loadGameData() {
+            const savedData = localStorage.getItem('fightCCF_gameData');
+            if (savedData) {
+                try {
+                    gameData = JSON.parse(savedData);
+                    return true;
+                } catch (e) {
+                    console.error('加载游戏数据失败:', e);
+                    return false;
+                }
+            }
+            return false;
+        }
 
         // 角色数据
         const characterData = {
@@ -543,8 +497,8 @@
                 ccf: 'ccf.html'
             };
 
-            if (chapter === 'cspj') {
-                // 对于CSP-J，直接跳转
+            if (chapter === 'cspj' || chapter === 'csps') {
+                // 对于CSP-J和CSP-S，直接跳转
                 window.location.href = chapterMap[chapter];
             } else {
                 // 对于其他章节，显示未开发提示
@@ -603,6 +557,15 @@
             // 初始化数字雨
             initDigitalRain();
             
+            // 尝试加载游戏数据，如果没有则跳转到登录页面
+            if (!loadGameData()) {
+                window.location.href = 'login.html';
+                return;
+            }
+            
+            // 初始化游戏
+            initGame();
+            
             // 确保复制按钮事件正确绑定
             const bindCopyButton = () => {
                 const copyBtn = document.getElementById('copyKeyBtn');
@@ -624,52 +587,40 @@
             
             // 立即绑定复制按钮
             bindCopyButton();
-            // 登录按钮
-            document.getElementById('loginBtn').addEventListener('click', function() {
-                const keySection = document.getElementById('keySection');
-                const keyInput = document.getElementById('key');
-                
-                if (keySection.classList.contains('hidden')) {
-                    keySection.classList.remove('hidden');
-                    this.textContent = '确认登录';
-                } else {
-                    const key = keyInput.value.trim();
-                    if (key) {
-                        const parsedData = parseKey(key);
-                        if (parsedData) {
-                            gameData = { ...gameData, ...parsedData };
-                            gameData.key = key;
-                            initGame();
-                        } else {
-                            showNotification('无效的秘钥');
-                        }
-                    } else {
-                        showNotification('请输入秘钥');
-                    }
-                }
-            });
-
-            // 创建账号按钮
-            document.getElementById('createBtn').addEventListener('click', function() {
-                const username = document.getElementById('username').value.trim();
-                if (username) {
-                    gameData.username = username;
-                    gameData.key = generateKey(gameData);
-                    initGame();
-                } else {
-                    showNotification('请输入用户名');
-                }
-            });
 
             // 复制秘钥按钮
             document.getElementById('copyKeyBtn').addEventListener('click', function() {
                 copyToClipboard(gameData.key);
             });
+            
+            // 添加重新登录按钮
+            const addReloginButton = () => {
+                const header = document.querySelector('.glass.p-4.flex.justify-between.items-center');
+                if (header && !document.getElementById('reloginBtn')) {
+                    const reloginBtn = document.createElement('button');
+                    reloginBtn.id = 'reloginBtn';
+                    reloginBtn.className = 'btn glass p-2 rounded-lg hover:bg-white/20 transition-colors';
+                    reloginBtn.innerHTML = '<i data-lucide="log-out" class="w-5 h-5"></i>';
+                    reloginBtn.title = '重新登录';
+                    reloginBtn.addEventListener('click', function() {
+                        localStorage.removeItem('fightCCF_gameData');
+                        window.location.href = 'login.html';
+                    });
+                    header.appendChild(reloginBtn);
+                    lucide.createIcons();
+                }
+            };
+            
+            // 添加重新登录按钮
+            setTimeout(addReloginButton, 100);
 
             // 关闭角色详情模态框
             document.getElementById('closeCharacterModal').addEventListener('click', function() {
                 document.getElementById('characterModal').classList.remove('active');
             });
+            
+            // 重新绑定复制按钮事件
+            bindCopyButton();
 
             // 章节点击事件
             document.querySelectorAll('.computer').forEach(computer => {
