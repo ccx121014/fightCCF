@@ -463,6 +463,9 @@
             document.getElementById('unlockedChapters').textContent = `${gameData.unlockedChapters.length}/6`;
             document.getElementById('unlockedCharacters').textContent = `${gameData.unlockedCharacters.length}/6`;
             
+            // 保存游戏数据到localStorage
+            localStorage.setItem('fightCCF_gameData', JSON.stringify(gameData));
+            
             // 更新角色列表
             updateCharactersList();
             
