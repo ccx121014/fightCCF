@@ -184,6 +184,43 @@
     </style>
 </head>
 <body class="bg-main">
+    <!-- 角色详情模态框 -->
+    <div id="characterModal" class="modal">
+        <div class="glass rounded-2xl p-8 max-w-lg w-full mx-4">
+            <div class="flex justify-between items-center mb-6">
+                <h3 class="text-2xl font-bold orbitron" id="characterName">角色详情</h3>
+                <button id="closeCharacterModal" class="text-gray-400 hover:text-white">
+                    <i data-lucide="x" class="w-6 h-6"></i>
+                </button>
+            </div>
+            <div class="flex items-center space-x-6 mb-6">
+                <img id="characterImage" src="https://p3-flow-imagex-sign.byteimg.com/tos-cn-i-a9rns2rl98/rc/pc/super_tool/d60eb7e0ce9745baa66fc43f1214cd41~tplv-a9rns2rl98-image.image?rcl=20251213131030A8FD11621FC82FEA2AB2&rk3s=8e244e95&rrcfp=f06b921b&x-expires=1768194655&x-signature=u1jjuKDmnEOGwUYo4cTGDlGkN9w%3D" alt="角色" class="w-32 h-32 object-contain">
+                <div>
+                    <p class="text-gray-300 mb-2">解锁章节: <span id="unlockChapter">CSP-J</span></p>
+                    <p class="text-gray-300">战斗力: <span id="power">1000</span></p>
+                </div>
+            </div>
+            <div class="space-y-4">
+                <div class="glass rounded-lg p-4">
+                    <h4 class="font-semibold text-cyan-400 mb-2">普攻 (I)</h4>
+                    <p class="text-sm text-gray-300" id="normalAttack">快速编程攻击，造成基础伤害</p>
+                </div>
+                <div class="glass rounded-lg p-4">
+                    <h4 class="font-semibold text-cyan-400 mb-2">一技能 (J)</h4>
+                    <p class="text-sm text-gray-300" id="skill1">循环轰炸：释放多个编程循环，对敌人造成持续伤害</p>
+                </div>
+                <div class="glass rounded-lg p-4">
+                    <h4 class="font-semibold text-cyan-400 mb-2">二技能 (K)</h4>
+                    <p class="text-sm text-gray-300" id="skill2">递归突刺：使用递归算法向前突刺，造成穿透伤害</p>
+                </div>
+                <div class="glass rounded-lg p-4">
+                    <h4 class="font-semibold text-cyan-400 mb-2">三技能 (L)</h4>
+                    <p class="text-sm text-gray-300" id="skill3">算法爆发：调用高级算法，对敌人造成大量伤害并附加debuff</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
     <!-- 主游戏界面 -->
     <div id="gameContainer" class="hidden h-screen flex flex-col">
         <!-- 顶部信息栏 -->
@@ -424,7 +461,6 @@
             updateCharactersList();
             
             // 显示游戏容器
-            document.getElementById('accountModal').classList.remove('active');
             document.getElementById('gameContainer').classList.remove('hidden');
             
             // 重新绑定复制按钮事件（确保在DOM更新后绑定）
