@@ -462,7 +462,7 @@
             },
             game: {
                 score: 0,
-                time: 120,
+                time: 240,
                 isRunning: true,
                 level: 'NOIP - 算法竞赛',
                 keys: {},
@@ -1085,7 +1085,7 @@
             document.getElementById('enemyHealth').textContent = Math.max(0, Math.round(enemy.health)) + '%';
             document.getElementById('enemyHealthBar').style.width = (enemy.health / enemy.maxHealth * 100) + '%';
             
-            document.getElementById('timer').textContent = Math.ceil(game.time--);
+            document.getElementById('timer').textContent = Math.ceil(game.time / 60);
             document.getElementById('score').textContent = game.score;
         }
 
