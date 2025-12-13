@@ -1085,7 +1085,7 @@
             document.getElementById('enemyHealth').textContent = Math.max(0, Math.round(enemy.health)) + '%';
             document.getElementById('enemyHealthBar').style.width = (enemy.health / enemy.maxHealth * 100) + '%';
             
-            document.getElementById('timer').textContent = Math.ceil(game.time / 60);
+            document.getElementById('timer').textContent = Math.ceil(game.time--);
             document.getElementById('score').textContent = game.score;
         }
 
