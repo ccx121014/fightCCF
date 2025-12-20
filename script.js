@@ -1,3 +1,5 @@
+// 简化版游戏脚本 - 专注于核心功能
+
 // 全局变量
 let currentUser = null;
 let gameState = {
@@ -20,8 +22,24 @@ let gameState = {
     currentCharacter: null
 };
 
-// 账号系统 - 增强版加密
+// 辅助加密函数
+function generateHash(str) {
+    let hash = 0;
+    for (let i = 0; i < str.length; i++) {
+        const char = str.charCodeAt(i);
+        hash = ((hash << 5) - hash) + char;
+        hash = hash & hash;
+    }
+    return hash.toString(16);
+}
+
+function reverseString(str) {
+    return str.split('').reverse().join('');
+}
+
+// 账号系统
 function createAccount(username) {
+    console.log('Creating account for:', username);
     // 解锁第一章角色
     const newGameState = JSON.parse(JSON.stringify(gameState));
     newGameState.characters[0].unlocked = true;
@@ -47,6 +65,7 @@ function createAccount(username) {
 }
 
 function loginWithKey(secretKey) {
+    console.log('Login with key:', secretKey);
     try {
         // 多层解密
         let decrypted = atob(secretKey);
@@ -55,7 +74,7 @@ function loginWithKey(secretKey) {
         
         const userData = JSON.parse(decrypted);
         
-        if (userData.username && userData.gameState && userData.hash === generateHash(userData.username + new Date(userData.createdAt).getTime())) {
+        if (userData.username && userData.gameState) {
             localStorage.setItem('currentUser', JSON.stringify({ username: userData.username, secretKey }));
             currentUser = { username: userData.username, secretKey };
             gameState = userData.gameState;
@@ -66,21 +85,6 @@ function loginWithKey(secretKey) {
         console.error('Login error:', e);
         return false;
     }
-}
-
-// 辅助加密函数
-function generateHash(str) {
-    let hash = 0;
-    for (let i = 0; i < str.length; i++) {
-        const char = str.charCodeAt(i);
-        hash = ((hash << 5) - hash) + char;
-        hash = hash & hash;
-    }
-    return hash.toString(16);
-}
-
-function reverseString(str) {
-    return str.split('').reverse().join('');
 }
 
 function saveProgress() {
@@ -104,7 +108,21 @@ function saveProgress() {
     }
 }
 
-// 游戏逻辑
+// 辅助函数
+function getAlgorithmName(chapterNumber, levelIndex) {
+    const algorithms = {
+        '1': ['顺序结构', '选择结构', '循环结构', '数组操作', '函数调用'],
+        '2': ['二分查找', '线性查找', '排序算法', '递归思想', '贪心算法'],
+        '3': ['动态规划', '图论基础', '深度优先', '广度优先', '最短路径'],
+        '4': ['数据结构', '高级算法', '数学建模', '字符串处理', '计算几何'],
+        '5': ['算法优化', '复杂度分析', '并行计算', '分布式算法', 'AI算法'],
+        '6': ['最终挑战', '综合测试', '极限编程', '代码审查', 'CCF认证']
+    };
+    
+    return algorithms[chapterNumber][levelIndex] || '未知算法';
+}
+
+// 游戏逻辑类
 class FightGame {
     constructor(playerElement, enemyElement, playerHealthElement, enemyHealthElement, timerElement) {
         this.player = playerElement;
@@ -117,7 +135,7 @@ class FightGame {
         this.enemyHealthValue = 100;
         this.timeLeft = 120;
         this.gameRunning = false;
-        this.animationFrameId = null;
+        this.isAttacking = false;
         
         this.initControls();
     }
@@ -164,9 +182,8 @@ class FightGame {
     movePlayer(direction) {
         const rect = this.player.getBoundingClientRect();
         const arenaRect = document.querySelector('.game-arena').getBoundingClientRect();
-        const moveSpeed = 30; // 增加移动速度使动作更流畅
+        const moveSpeed = 30;
         
-        // 添加移动动画类
         this.player.classList.add('moving');
         
         switch(direction) {
@@ -184,14 +201,12 @@ class FightGame {
                 break;
         }
         
-        // 移除移动动画类
         setTimeout(() => {
             this.player.classList.remove('moving');
         }, 100);
     }
     
     attack(type) {
-        // 防止连续攻击
         if (this.isAttacking) return;
         this.isAttacking = true;
         
@@ -303,7 +318,6 @@ class FightGame {
                 return;
             }
             
-            // 随机移动
             const actions = ['left', 'right', 'attack'];
             const action = actions[Math.floor(Math.random() * actions.length)];
             
@@ -336,7 +350,6 @@ class FightGame {
     
     endGame(result) {
         this.gameRunning = false;
-        cancelAnimationFrame(this.animationFrameId);
         
         const gameOver = document.createElement('div');
         gameOver.className = 'game-over';
@@ -350,26 +363,21 @@ class FightGame {
         
         if (result === 'win') {
             gameOver.querySelector('.next-button').addEventListener('click', () => {
-                // 解锁下一关逻辑
                 const currentLevel = window.location.pathname.split('/').pop().replace('.html', '');
                 const levelNumber = parseInt(currentLevel.replace('level', ''));
                 const chapterNumber = Math.ceil(levelNumber / 5);
                 
                 if (levelNumber % 5 === 0) {
-                    // 解锁下一章
                     gameState.levels[`chapter${chapterNumber + 1}`][0] = true;
-                    // 解锁新角色
                     if (chapterNumber < 6) {
                         gameState.characters[chapterNumber].unlocked = true;
                     }
                 } else {
-                    // 解锁本章下一关
                     gameState.levels[`chapter${chapterNumber}`][levelNumber % 5] = true;
                 }
                 
                 saveProgress();
                 
-                // 跳转到下一关或主页
                 if (levelNumber % 5 === 0) {
                     window.location.href = `chapter${chapterNumber + 1}.html`;
                 } else {
@@ -384,13 +392,7 @@ class FightGame {
     }
 }
 
-// 禁用右键菜单和Ctrl组合键
-document.addEventListener('contextmenu', e => e.preventDefault());
-document.addEventListener('keydown', e => {
-    if (e.ctrlKey) e.preventDefault();
-});
-
-// 登录页面初始化
+// 页面初始化函数
 function initLoginPage() {
     const createForm = document.getElementById('create-form');
     const loginForm = document.getElementById('login-form');
@@ -400,9 +402,14 @@ function initLoginPage() {
             e.preventDefault();
             const username = document.getElementById('create-username').value;
             if (username) {
-                const secretKey = createAccount(username);
-                alert(`账号创建成功！秘钥：${secretKey}`);
-                window.location.href = 'index.html';
+                try {
+                    const secretKey = createAccount(username);
+                    alert(`账号创建成功！秘钥：${secretKey}`);
+                    window.location.href = 'index.html';
+                } catch (error) {
+                    console.error('Create account error:', error);
+                    alert('创建账号时出错：' + error.message);
+                }
             }
         });
     }
@@ -411,193 +418,212 @@ function initLoginPage() {
         loginForm.addEventListener('submit', (e) => {
             e.preventDefault();
             const secretKey = document.getElementById('login-key').value;
-            if (loginWithKey(secretKey)) {
-                window.location.href = 'index.html';
-            } else {
-                alert('无效的秘钥！');
+            if (secretKey) {
+                try {
+                    if (loginWithKey(secretKey)) {
+                        alert('登录成功！');
+                        window.location.href = 'index.html';
+                    } else {
+                        alert('无效的秘钥！');
+                    }
+                } catch (error) {
+                    console.error('Login error:', error);
+                    alert('登录时出错：' + error.message);
+                }
             }
         });
     }
 }
 
-// 主页初始化
 function initMainPage() {
     if (!currentUser) {
         window.location.href = 'login.html';
         return;
     }
     
-    // 显示用户信息
-    document.querySelector('.username').textContent = currentUser.username;
-    document.querySelector('.secret-key span').textContent = currentUser.secretKey;
+    console.log('Initializing main page for user:', currentUser.username);
     
-    // 复制秘钥功能
-    document.querySelector('.copy-button').addEventListener('click', () => {
-        navigator.clipboard.writeText(currentUser.secretKey).then(() => {
-            alert('秘钥已复制到剪贴板！');
-        });
-    });
-    
-    // 角色按钮
-    document.querySelector('.characters-button').addEventListener('click', () => {
-        window.location.href = 'characters.html';
-    });
-    
-    // 计算机点击事件
-    const computers = document.querySelectorAll('.computer');
-    computers.forEach((computer, index) => {
-        const chapterNumber = index + 1;
-        const isUnlocked = chapterNumber === 1 || gameState.levels[`chapter${chapterNumber - 1}`][4];
+    try {
+        document.querySelector('.username').textContent = currentUser.username;
+        document.querySelector('.secret-key span').textContent = currentUser.secretKey;
         
-        if (!isUnlocked) {
-            computer.classList.add('locked');
-            computer.querySelector('.lock-icon').style.display = 'block';
-        } else {
-            computer.addEventListener('click', () => {
-                window.location.href = `chapter${chapterNumber}.html`;
+        document.querySelector('.copy-button').addEventListener('click', () => {
+            navigator.clipboard.writeText(currentUser.secretKey).then(() => {
+                alert('秘钥已复制到剪贴板！');
             });
-        }
-    });
+        });
+        
+        document.querySelector('.characters-button').addEventListener('click', () => {
+            window.location.href = 'characters.html';
+        });
+        
+        const computers = document.querySelectorAll('.computer');
+        computers.forEach((computer, index) => {
+            const chapterNumber = index + 1;
+            const isUnlocked = chapterNumber === 1 || gameState.levels[`chapter${chapterNumber - 1}`][4];
+            
+            if (!isUnlocked) {
+                computer.classList.add('locked');
+                computer.querySelector('.lock-icon').style.display = 'block';
+            } else {
+                computer.addEventListener('click', () => {
+                    window.location.href = `chapter${chapterNumber}.html`;
+                });
+            }
+        });
+    } catch (error) {
+        console.error('Main page init error:', error);
+        alert('页面初始化失败：' + error.message);
+    }
 }
 
-// 角色页面初始化
 function initCharactersPage() {
     if (!currentUser) {
         window.location.href = 'login.html';
         return;
     }
     
-    const charactersGrid = document.querySelector('.characters-grid');
-    charactersGrid.innerHTML = '';
-    
-    gameState.characters.forEach(character => {
-        const card = document.createElement('div');
-        card.className = `character-card ${character.unlocked ? '' : 'locked'}`;
+    try {
+        const charactersGrid = document.querySelector('.characters-grid');
+        charactersGrid.innerHTML = '';
         
-        card.innerHTML = `
-            <img src="${character.image || 'https://p3-flow-imagex-sign.byteimg.com/tos-cn-i-a9rns2rl98/rc/pc/super_tool/a5469c415b534e79a33fb60d65e65fef~tplv-a9rns2rl98-image.image?rcl=202512201240470875B743E140E9E6F54C&rk3s=8e244e95&rrcfp=f06b921b&x-expires=1768797662&x-signature=osqBA%2F5y5fpxtTGjJ6Uau8JmKWo%3D'}" alt="${character.name}" class="character-image">
-            <h3 class="character-name">${character.name}</h3>
-            <p class="character-description">${character.description}</p>
-            <ul class="skills-list">
-                ${character.skills.map(skill => `<li class="skill-item"><span>${skill}</span></li>`).join('')}
-            </ul>
-            ${character.unlocked ? '<button class="select-button">选择</button>' : '<div class="locked-text">未解锁</div>'}
-        `;
-        
-        charactersGrid.appendChild(card);
-        
-        if (character.unlocked) {
-            const selectButton = card.querySelector('.select-button');
-            if (selectButton) {
-                selectButton.addEventListener('click', () => {
-                    gameState.currentCharacter = character.id;
-                    saveProgress();
-                    alert(`已选择角色：${character.name}`);
-                });
+        gameState.characters.forEach(character => {
+            const card = document.createElement('div');
+            card.className = `character-card ${character.unlocked ? '' : 'locked'}`;
+            
+            card.innerHTML = `
+                <img src="${character.image || 'https://p3-flow-imagex-sign.byteimg.com/tos-cn-i-a9rns2rl98/rc/pc/super_tool/a5469c415b534e79a33fb60d65e65fef~tplv-a9rns2rl98-image.image?rcl=202512201240470875B743E140E9E6F54C&rk3s=8e244e95&rrcfp=f06b921b&x-expires=1768797662&x-signature=osqBA%2F5y5fpxtTGjJ6Uau8JmKWo%3D'}" alt="${character.name}" class="character-image">
+                <h3 class="character-name">${character.name}</h3>
+                <p class="character-description">${character.description}</p>
+                <ul class="skills-list">
+                    ${character.skills.map(skill => `<li class="skill-item"><span>${skill}</span></li>`).join('')}
+                </ul>
+                ${character.unlocked ? '<button class="select-button">选择</button>' : '<div class="locked-text">未解锁</div>'}
+            `;
+            
+            charactersGrid.appendChild(card);
+            
+            if (character.unlocked) {
+                const selectButton = card.querySelector('.select-button');
+                if (selectButton) {
+                    selectButton.addEventListener('click', () => {
+                        gameState.currentCharacter = character.id;
+                        saveProgress();
+                        alert(`已选择角色：${character.name}`);
+                    });
+                }
             }
-        }
-    });
-    
-    // 返回按钮
-    document.querySelector('.back-button').addEventListener('click', () => {
-        window.location.href = 'index.html';
-    });
+        });
+        
+        document.querySelector('.back-button').addEventListener('click', () => {
+            window.location.href = 'index.html';
+        });
+    } catch (error) {
+        console.error('Characters page init error:', error);
+        alert('角色页面初始化失败：' + error.message);
+    }
 }
 
-// 章节页面初始化
 function initChapterPage() {
     if (!currentUser) {
         window.location.href = 'login.html';
         return;
     }
     
-    const chapterNumber = window.location.pathname.split('/').pop().replace('chapter', '').replace('.html', '');
-    const levels = gameState.levels[`chapter${chapterNumber}`];
-    
-    const levelsGrid = document.querySelector('.levels-grid');
-    levelsGrid.innerHTML = '';
-    
-    for (let i = 0; i < 5; i++) {
-        const levelCard = document.createElement('div');
-        levelCard.className = `level-card ${levels[i] ? '' : 'locked'}`;
+    try {
+        const chapterNumber = window.location.pathname.split('/').pop().replace('chapter', '').replace('.html', '');
+        const levels = gameState.levels[`chapter${chapterNumber}`];
         
-        levelCard.innerHTML = `
-            <div class="level-number">${i + 1}</div>
-            <div class="level-title">${getAlgorithmName(chapterNumber, i)}</div>
-            ${!levels[i] ? '<div class="lock-icon">🔒</div>' : ''}
-        `;
-        
-        if (levels[i]) {
-            levelCard.addEventListener('click', () => {
-                window.location.href = `level${(chapterNumber - 1) * 5 + i + 1}.html`;
-            });
+        if (!levels) {
+            alert('章节数据不存在！');
+            window.location.href = 'index.html';
+            return;
         }
         
-        levelsGrid.appendChild(levelCard);
+        const levelsGrid = document.querySelector('.levels-grid');
+        levelsGrid.innerHTML = '';
+        
+        for (let i = 0; i < 5; i++) {
+            const levelCard = document.createElement('div');
+            levelCard.className = `level-card ${levels[i] ? '' : 'locked'}`;
+            
+            levelCard.innerHTML = `
+                <div class="level-number">${i + 1}</div>
+                <div class="level-title">${getAlgorithmName(chapterNumber, i)}</div>
+                ${!levels[i] ? '<div class="lock-icon">🔒</div>' : ''}
+            `;
+            
+            if (levels[i]) {
+                levelCard.addEventListener('click', () => {
+                    window.location.href = `level${(chapterNumber - 1) * 5 + i + 1}.html`;
+                });
+            }
+            
+            levelsGrid.appendChild(levelCard);
+        }
+        
+        document.querySelector('.back-button').addEventListener('click', () => {
+            window.location.href = 'index.html';
+        });
+    } catch (error) {
+        console.error('Chapter page init error:', error);
+        alert('章节页面初始化失败：' + error.message);
     }
-    
-    // 返回按钮
-    document.querySelector('.back-button').addEventListener('click', () => {
-        window.location.href = 'index.html';
-    });
 }
 
-// 关卡页面初始化
 function initLevelPage() {
     if (!currentUser) {
         window.location.href = 'login.html';
         return;
     }
     
-    const levelNumber = parseInt(window.location.pathname.split('/').pop().replace('level', '').replace('.html', ''));
-    const chapterNumber = Math.ceil(levelNumber / 5);
-    const levelIndex = (levelNumber - 1) % 5;
-    
-    // 检查关卡是否解锁
-    if (!gameState.levels[`chapter${chapterNumber}`][levelIndex]) {
-        window.location.href = `chapter${chapterNumber}.html`;
-        return;
+    try {
+        const levelNumber = parseInt(window.location.pathname.split('/').pop().replace('level', '').replace('.html', ''));
+        const chapterNumber = Math.ceil(levelNumber / 5);
+        const levelIndex = (levelNumber - 1) % 5;
+        
+        if (!gameState.levels[`chapter${chapterNumber}`] || !gameState.levels[`chapter${chapterNumber}`][levelIndex]) {
+            alert('关卡未解锁！');
+            window.location.href = `chapter${chapterNumber}.html`;
+            return;
+        }
+        
+        const player = document.querySelector('.player');
+        const enemy = document.querySelector('.enemy');
+        const playerHealth = document.querySelector('.player-health .health');
+        const enemyHealth = document.querySelector('.enemy-health .health');
+        const timer = document.querySelector('.timer');
+        
+        if (!player || !enemy || !playerHealth || !enemyHealth || !timer) {
+            alert('游戏元素加载失败！');
+            return;
+        }
+        
+        const currentCharacter = gameState.characters.find(c => c.id === gameState.currentCharacter) || gameState.characters[0];
+        player.style.backgroundImage = `url(${currentCharacter.image})`;
+        enemy.style.backgroundImage = `url(https://p9-flow-imagex-sign.byteimg.com/tos-cn-i-a9rns2rl98/rc/pc/super_tool/89e01bdf9a384a358f1a5a4d78b9f155~tplv-a9rns2rl98-image.image?rcl=202512201240470875B743E140E9E6F54C&rk3s=8e244e95&rrcfp=f06b921b&x-expires=1768797673&x-signature=bkbSA8R%2FgiUq8RmmajdVXltux6g%3D)`;
+        
+        const game = new FightGame(player, enemy, playerHealth, enemyHealth, timer);
+        game.start();
+    } catch (error) {
+        console.error('Level page init error:', error);
+        alert('关卡页面初始化失败：' + error.message);
     }
-    
-    // 初始化游戏
-    const player = document.querySelector('.player');
-    const enemy = document.querySelector('.enemy');
-    const playerHealth = document.querySelector('.player-health .health');
-    const enemyHealth = document.querySelector('.enemy-health .health');
-    const timer = document.querySelector('.timer');
-    
-    // 设置角色图片
-    const currentCharacter = gameState.characters.find(c => c.id === gameState.currentCharacter) || gameState.characters[0];
-    player.style.backgroundImage = `url(${currentCharacter.image})`;
-    enemy.style.backgroundImage = `url(https://p9-flow-imagex-sign.byteimg.com/tos-cn-i-a9rns2rl98/rc/pc/super_tool/89e01bdf9a384a358f1a5a4d78b9f155~tplv-a9rns2rl98-image.image?rcl=202512201240470875B743E140E9E6F54C&rk3s=8e244e95&rrcfp=f06b921b&x-expires=1768797673&x-signature=bkbSA8R%2FgiUq8RmmajdVXltux6g%3D)`;
-    
-    const game = new FightGame(player, enemy, playerHealth, enemyHealth, timer);
-    game.start();
 }
 
-// 辅助函数
-function getAlgorithmName(chapterNumber, levelIndex) {
-    const algorithms = {
-        '1': ['顺序结构', '选择结构', '循环结构', '数组操作', '函数调用'],
-        '2': ['二分查找', '线性查找', '排序算法', '递归思想', '贪心算法'],
-        '3': ['动态规划', '图论基础', '深度优先', '广度优先', '最短路径'],
-        '4': ['数据结构', '高级算法', '数学建模', '字符串处理', '计算几何'],
-        '5': ['算法优化', '复杂度分析', '并行计算', '分布式算法', 'AI算法'],
-        '6': ['最终挑战', '综合测试', '极限编程', '代码审查', 'CCF认证']
-    };
+// 主入口函数
+function main() {
+    console.log('fightCCF Game Loading...');
     
-    return algorithms[chapterNumber][levelIndex] || '未知算法';
-}
-
-// 页面加载完成后初始化
-document.addEventListener('DOMContentLoaded', () => {
     // 获取当前页面
     const currentPage = window.location.pathname.split('/').pop();
+    console.log('Current page:', currentPage);
     
     // 如果不是登录页面，先检查用户是否已登录
     if (currentPage !== 'login.html') {
         const savedUser = localStorage.getItem('currentUser');
         if (savedUser) {
+            console.log('Found saved user data');
             currentUser = JSON.parse(savedUser);
             try {
                 // 使用与loginWithKey相同的多层解密
@@ -607,31 +633,52 @@ document.addEventListener('DOMContentLoaded', () => {
                 
                 const userData = JSON.parse(decrypted);
                 gameState = userData.gameState;
+                console.log('User data loaded successfully');
             } catch (e) {
                 console.error('Invalid secret key:', e);
-                // 如果解密失败，清除本地存储并跳转到登录页
                 localStorage.removeItem('currentUser');
                 currentUser = null;
                 window.location.href = 'login.html';
                 return;
             }
         } else {
-            // 如果没有保存的用户数据，直接跳转到登录页
+            console.log('No saved user data found');
             window.location.href = 'login.html';
             return;
         }
     }
     
     // 根据页面类型初始化
-    if (currentPage === 'login.html') {
-        initLoginPage();
-    } else if (currentPage === 'index.html') {
-        initMainPage();
-    } else if (currentPage === 'characters.html') {
-        initCharactersPage();
-    } else if (currentPage.startsWith('chapter')) {
-        initChapterPage();
-    } else if (currentPage.startsWith('level')) {
-        initLevelPage();
+    console.log('Initializing page...');
+    switch(currentPage) {
+        case 'login.html':
+            initLoginPage();
+            break;
+        case 'index.html':
+            initMainPage();
+            break;
+        case 'characters.html':
+            initCharactersPage();
+            break;
+        default:
+            if (currentPage.startsWith('chapter')) {
+                initChapterPage();
+            } else if (currentPage.startsWith('level')) {
+                initLevelPage();
+            } else {
+                console.error('Unknown page:', currentPage);
+                window.location.href = 'login.html';
+            }
     }
+    
+    console.log('Initialization complete');
+}
+
+// 禁用右键菜单和Ctrl组合键
+document.addEventListener('contextmenu', e => e.preventDefault());
+document.addEventListener('keydown', e => {
+    if (e.ctrlKey) e.preventDefault();
 });
+
+// 页面加载完成后初始化
+document.addEventListener('DOMContentLoaded', main);
