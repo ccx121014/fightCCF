@@ -591,32 +591,38 @@ function getAlgorithmName(chapterNumber, levelIndex) {
 
 // 页面加载完成后初始化
 document.addEventListener('DOMContentLoaded', () => {
-    // 检查当前用户
-    const savedUser = localStorage.getItem('currentUser');
-    if (savedUser) {
-        currentUser = JSON.parse(savedUser);
-        try {
-            // 使用与loginWithKey相同的多层解密
-            let decrypted = atob(currentUser.secretKey);
-            decrypted = reverseString(decrypted);
-            decrypted = atob(decrypted);
-            
-            const userData = JSON.parse(decrypted);
-            gameState = userData.gameState;
-        } catch (e) {
-            console.error('Invalid secret key:', e);
-            // 如果解密失败，清除本地存储并跳转到登录页
-            localStorage.removeItem('currentUser');
-            currentUser = null;
-            if (window.location.pathname.split('/').pop() !== 'login.html') {
+    // 获取当前页面
+    const currentPage = window.location.pathname.split('/').pop();
+    
+    // 如果不是登录页面，先检查用户是否已登录
+    if (currentPage !== 'login.html') {
+        const savedUser = localStorage.getItem('currentUser');
+        if (savedUser) {
+            currentUser = JSON.parse(savedUser);
+            try {
+                // 使用与loginWithKey相同的多层解密
+                let decrypted = atob(currentUser.secretKey);
+                decrypted = reverseString(decrypted);
+                decrypted = atob(decrypted);
+                
+                const userData = JSON.parse(decrypted);
+                gameState = userData.gameState;
+            } catch (e) {
+                console.error('Invalid secret key:', e);
+                // 如果解密失败，清除本地存储并跳转到登录页
+                localStorage.removeItem('currentUser');
+                currentUser = null;
                 window.location.href = 'login.html';
+                return;
             }
+        } else {
+            // 如果没有保存的用户数据，直接跳转到登录页
+            window.location.href = 'login.html';
+            return;
         }
     }
     
     // 根据页面类型初始化
-    const currentPage = window.location.pathname.split('/').pop();
-    
     if (currentPage === 'login.html') {
         initLoginPage();
     } else if (currentPage === 'index.html') {
