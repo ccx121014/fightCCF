@@ -1,0 +1,13 @@
+{
+  "id": "chapter3",
+  "title": "Underground Lab",
+  "description": "Stealth and puzzle elements introduced along with new enemy types.",
+  "levels": [
+    { "id": "3-1", "title": "Labs" },
+    { "id": "3-2", "title": "Containment" }
+  ],
+  "metadata": {
+    "difficulty": "normal",
+    "recommended_level": 5
+  }
+}

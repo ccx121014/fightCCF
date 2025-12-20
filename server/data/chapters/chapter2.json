@@ -1,0 +1,13 @@
+{
+  "id": "chapter2",
+  "title": "City Outskirts",
+  "description": "First real encounters with AI enemies and environmental hazards.",
+  "levels": [
+    { "id": "2-1", "title": "Ambush" },
+    { "id": "2-2", "title": "Bridge" }
+  ],
+  "metadata": {
+    "difficulty": "normal",
+    "recommended_level": 3
+  }
+}

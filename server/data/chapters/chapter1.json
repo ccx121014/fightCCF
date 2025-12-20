@@ -1,0 +1,13 @@
+{
+  "id": "chapter1",
+  "title": "Training Grounds",
+  "description": "Introductory chapter to teach basics: movement, attacks, and combos.",
+  "levels": [
+    { "id": "1-1", "title": "Basics" },
+    { "id": "1-2", "title": "Combos" }
+  ],
+  "metadata": {
+    "difficulty": "easy",
+    "recommended_level": 1
+  }
+}

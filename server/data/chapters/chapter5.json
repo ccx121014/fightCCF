@@ -1,0 +1,13 @@
+{
+  "id": "chapter5",
+  "title": "The Siege",
+  "description": "Large scale combat with multiple enemy waves and environmental puzzles.",
+  "levels": [
+    { "id": "5-1", "title": "Siege Lines" },
+    { "id": "5-2", "title": "Keep" }
+  ],
+  "metadata": {
+    "difficulty": "hard",
+    "recommended_level": 12
+  }
+}

@@ -1,0 +1,26 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>Level Demo - fightCCF</title>
+  <link rel="stylesheet" href="/assets/css/style.css">
+</head>
+<body>
+  <h1>Level Demo</h1>
+  <div id="level-container">
+    <canvas id="level-canvas" width="800" height="450" style="border:1px solid #333"></canvas>
+  </div>
+
+  <script src="/assets/js/animator.js"></script>
+  <script src="/assets/js/level-runner.js"></script>
+  <script>
+    // Basic runner startup
+    const canvas = document.getElementById('level-canvas');
+    const ctx = canvas.getContext('2d');
+
+    const runner = new LevelRunner({ ctx });
+    runner.start();
+  </script>
+</body>
+</html>
