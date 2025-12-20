@@ -1,0 +1,707 @@
+/* fightCCF 游戏样式文件 */
+
+/* 全局样式 */
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+body {
+    background-color: #1a1a1a;
+    color: #00ff00;
+    font-family: 'Courier New', monospace;
+    overflow: hidden;
+    user-select: none;
+}
+
+/* 防作弊机制 */
+body {
+    -webkit-user-select: none;
+    -moz-user-select: none;
+    -ms-user-select: none;
+    user-select: none;
+}
+
+/* 登录页面样式 */
+.login-container {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    text-align: center;
+    padding: 40px;
+    border: 2px solid #00ff00;
+    border-radius: 15px;
+    background-color: #0d0d0d;
+    box-shadow: 0 0 30px rgba(0, 255, 0, 0.3);
+}
+
+.login-title {
+    font-size: 4em;
+    margin-bottom: 30px;
+    text-shadow: 0 0 20px #00ff00;
+    animation: glow 2s ease-in-out infinite alternate;
+}
+
+@keyframes glow {
+    from {
+        text-shadow: 0 0 20px #00ff00;
+    }
+    to {
+        text-shadow: 0 0 30px #00ff00, 0 0 40px #00ff00;
+    }
+}
+
+.login-form {
+    margin: 25px 0;
+}
+
+.login-input {
+    padding: 15px;
+    margin: 15px 0;
+    border: 2px solid #00ff00;
+    border-radius: 8px;
+    background-color: #333;
+    color: #00ff00;
+    width: 300px;
+    font-size: 1.1em;
+    transition: all 0.3s ease;
+}
+
+.login-input:focus {
+    outline: none;
+    box-shadow: 0 0 15px rgba(0, 255, 0, 0.5);
+    border-color: #00cc00;
+}
+
+.login-button {
+    padding: 15px 30px;
+    background-color: #00ff00;
+    color: #000;
+    border: none;
+    border-radius: 8px;
+    cursor: pointer;
+    font-size: 1.1em;
+    font-weight: bold;
+    transition: all 0.3s ease;
+    margin-top: 10px;
+}
+
+.login-button:hover {
+    background-color: #00cc00;
+    transform: scale(1.05);
+    box-shadow: 0 0 20px rgba(0, 255, 0, 0.6);
+}
+
+.login-button:active {
+    transform: scale(0.95);
+}
+
+/* 主页样式 */
+.main-container {
+    width: 100vw;
+    height: 100vh;
+    background: radial-gradient(circle at center, #0d0d0d 0%, #1a1a1a 100%);
+    position: relative;
+}
+
+.user-info {
+    position: absolute;
+    top: 20px;
+    left: 20px;
+    background-color: rgba(0, 0, 0, 0.8);
+    padding: 15px;
+    border-radius: 10px;
+    border: 1px solid #00ff00;
+    max-width: 300px;
+}
+
+.username-display {
+    font-size: 1.2em;
+    margin-bottom: 10px;
+    color: #00ff00;
+}
+
+.secret-key-display {
+    font-size: 0.9em;
+    color: #00cc00;
+    word-break: break-all;
+    margin-bottom: 10px;
+}
+
+.copy-button {
+    background-color: #00ff00;
+    color: #000;
+    border: none;
+    padding: 5px 10px;
+    border-radius: 5px;
+    cursor: pointer;
+    font-size: 0.8em;
+    transition: all 0.3s ease;
+}
+
+.copy-button:hover {
+    background-color: #00cc00;
+}
+
+.characters-button {
+    position: absolute;
+    bottom: 20px;
+    left: 20px;
+    background-color: rgba(0, 0, 0, 0.8);
+    color: #00ff00;
+    border: 2px solid #00ff00;
+    padding: 15px 25px;
+    border-radius: 10px;
+    cursor: pointer;
+    font-size: 1.1em;
+    transition: all 0.3s ease;
+    text-decoration: none;
+    display: inline-block;
+}
+
+.characters-button:hover {
+    background-color: #00ff00;
+    color: #000;
+    transform: scale(1.05);
+    box-shadow: 0 0 20px rgba(0, 255, 0, 0.6);
+}
+
+.computers-grid {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    grid-template-rows: repeat(2, 1fr);
+    gap: 30px;
+    width: 80%;
+    max-width: 1000px;
+}
+
+.computer {
+    background-color: rgba(0, 0, 0, 0.8);
+    border: 2px solid #00ff00;
+    border-radius: 15px;
+    padding: 30px;
+    text-align: center;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    position: relative;
+    min-height: 150px;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+}
+
+.computer:hover:not(.locked) {
+    transform: translateY(-10px);
+    box-shadow: 0 15px 30px rgba(0, 255, 0, 0.4);
+    border-color: #00cc00;
+}
+
+.computer.locked {
+    cursor: not-allowed;
+    opacity: 0.6;
+    border-color: #666;
+}
+
+.computer-icon {
+    font-size: 3em;
+    margin-bottom: 15px;
+    color: #00ff00;
+}
+
+.computer-title {
+    font-size: 1.3em;
+    font-weight: bold;
+    color: #00ff00;
+}
+
+.lock-icon {
+    position: absolute;
+    top: 10px;
+    right: 10px;
+    font-size: 1.5em;
+    color: #ff0000;
+}
+
+/* 角色页面样式 */
+.characters-container {
+    width: 100vw;
+    height: 100vh;
+    background: radial-gradient(circle at center, #0d0d0d 0%, #1a1a1a 100%);
+    position: relative;
+    padding: 20px;
+}
+
+.characters-title {
+    text-align: center;
+    font-size: 3em;
+    margin-bottom: 30px;
+    text-shadow: 0 0 20px #00ff00;
+}
+
+.characters-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+    gap: 20px;
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 20px;
+}
+
+.character-card {
+    background-color: rgba(0, 0, 0, 0.8);
+    border: 2px solid #00ff00;
+    border-radius: 15px;
+    padding: 20px;
+    text-align: center;
+    transition: all 0.3s ease;
+    position: relative;
+}
+
+.character-card.locked {
+    opacity: 0.5;
+    border-color: #666;
+    cursor: not-allowed;
+}
+
+.character-card:not(.locked):hover {
+    transform: translateY(-5px);
+    box-shadow: 0 10px 25px rgba(0, 255, 0, 0.4);
+}
+
+.character-image {
+    width: 100px;
+    height: 100px;
+    border-radius: 50%;
+    margin-bottom: 15px;
+    border: 3px solid #00ff00;
+    object-fit: cover;
+}
+
+.character-name {
+    font-size: 1.5em;
+    margin-bottom: 10px;
+    color: #00ff00;
+}
+
+.character-description {
+    color: #00cc00;
+    margin-bottom: 15px;
+    font-size: 0.9em;
+}
+
+.skills-list {
+    list-style: none;
+    margin-bottom: 15px;
+}
+
+.skill-item {
+    color: #00ff00;
+    margin: 5px 0;
+    font-size: 0.9em;
+}
+
+.select-button {
+    background-color: #00ff00;
+    color: #000;
+    border: none;
+    padding: 10px 20px;
+    border-radius: 8px;
+    cursor: pointer;
+    font-weight: bold;
+    transition: all 0.3s ease;
+}
+
+.select-button:hover {
+    background-color: #00cc00;
+    transform: scale(1.05);
+}
+
+.locked-text {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    font-size: 1.5em;
+    font-weight: bold;
+    color: #ff0000;
+    text-shadow: 0 0 10px #ff0000;
+}
+
+/* 章节页面样式 */
+.chapter-container {
+    width: 100vw;
+    height: 100vh;
+    background: radial-gradient(circle at center, #0d0d0d 0%, #1a1a1a 100%);
+    position: relative;
+    padding: 20px;
+}
+
+.chapter-title {
+    text-align: center;
+    font-size: 3em;
+    margin-bottom: 30px;
+    text-shadow: 0 0 20px #00ff00;
+}
+
+.levels-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 20px;
+    max-width: 800px;
+    margin: 0 auto;
+    padding: 20px;
+}
+
+.level-card {
+    background-color: rgba(0, 0, 0, 0.8);
+    border: 2px solid #00ff00;
+    border-radius: 15px;
+    padding: 25px;
+    text-align: center;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    position: relative;
+}
+
+.level-card.locked {
+    opacity: 0.5;
+    border-color: #666;
+    cursor: not-allowed;
+}
+
+.level-card:not(.locked):hover {
+    transform: translateY(-5px);
+    box-shadow: 0 10px 25px rgba(0, 255, 0, 0.4);
+}
+
+.level-number {
+    font-size: 2em;
+    font-weight: bold;
+    color: #00ff00;
+    margin-bottom: 10px;
+}
+
+.level-title {
+    font-size: 1.1em;
+    color: #00cc00;
+}
+
+.back-button {
+    position: absolute;
+    bottom: 20px;
+    left: 50%;
+    transform: translateX(-50%);
+    background-color: rgba(0, 0, 0, 0.8);
+    color: #00ff00;
+    border: 2px solid #00ff00;
+    padding: 15px 30px;
+    border-radius: 10px;
+    cursor: pointer;
+    font-size: 1.1em;
+    transition: all 0.3s ease;
+    text-decoration: none;
+    display: inline-block;
+}
+
+.back-button:hover {
+    background-color: #00ff00;
+    color: #000;
+    transform: translateX(-50%) scale(1.05);
+    box-shadow: 0 0 20px rgba(0, 255, 0, 0.6);
+}
+
+/* 关卡战斗页面样式 */
+.battle-container {
+    width: 100vw;
+    height: 100vh;
+    background: linear-gradient(135deg, #0d0d0d 0%, #1a1a1a 50%, #0d0d0d 100%);
+    position: relative;
+    overflow: hidden;
+}
+
+.battle-arena {
+    width: 100%;
+    height: 70%;
+    position: relative;
+    background-color: rgba(0, 0, 0, 0.5);
+    border-bottom: 3px solid #00ff00;
+}
+
+.player, .enemy {
+    position: absolute;
+    width: 80px;
+    height: 120px;
+    background-size: contain;
+    background-repeat: no-repeat;
+    background-position: center;
+    transition: all 0.1s ease;
+}
+
+.player {
+    bottom: 20px;
+    left: 20%;
+}
+
+.enemy {
+    bottom: 20px;
+    right: 20%;
+}
+
+.health-bars {
+    position: absolute;
+    top: 20px;
+    left: 50%;
+    transform: translateX(-50%);
+    display: flex;
+    justify-content: space-between;
+    width: 80%;
+    max-width: 600px;
+}
+
+.health-bar {
+    background-color: rgba(0, 0, 0, 0.8);
+    border: 2px solid #00ff00;
+    border-radius: 10px;
+    padding: 10px;
+    flex: 1;
+    margin: 0 10px;
+}
+
+.health-label {
+    font-size: 0.9em;
+    margin-bottom: 5px;
+    color: #00ff00;
+}
+
+.health-fill {
+    width: 100%;
+    height: 20px;
+    background-color: #333;
+    border-radius: 5px;
+    overflow: hidden;
+}
+
+.health-fill-inner {
+    height: 100%;
+    background-color: #ff0000;
+    transition: width 0.3s ease;
+}
+
+.player .health-fill-inner {
+    background-color: #00ff00;
+}
+
+.timer {
+    position: absolute;
+    top: 20px;
+    right: 20px;
+    background-color: rgba(0, 0, 0, 0.8);
+    color: #00ff00;
+    border: 2px solid #00ff00;
+    border-radius: 10px;
+    padding: 15px 25px;
+    font-size: 1.5em;
+    font-weight: bold;
+}
+
+.controls {
+    position: absolute;
+    bottom: 20px;
+    left: 50%;
+    transform: translateX(-50%);
+    display: flex;
+    gap: 15px;
+}
+
+.control-button {
+    background-color: rgba(0, 0, 0, 0.8);
+    color: #00ff00;
+    border: 2px solid #00ff00;
+    border-radius: 10px;
+    padding: 15px 25px;
+    cursor: pointer;
+    font-size: 1.1em;
+    font-weight: bold;
+    transition: all 0.3s ease;
+    min-width: 80px;
+    text-align: center;
+}
+
+.control-button:hover {
+    background-color: #00ff00;
+    color: #000;
+    transform: scale(1.05);
+    box-shadow: 0 0 15px rgba(0, 255, 0, 0.6);
+}
+
+.algorithm-info {
+    position: absolute;
+    top: 20px;
+    left: 20px;
+    background-color: rgba(0, 0, 0, 0.8);
+    color: #00ff00;
+    border: 2px solid #00ff00;
+    border-radius: 10px;
+    padding: 15px;
+    max-width: 300px;
+}
+
+.algorithm-name {
+    font-size: 1.2em;
+    font-weight: bold;
+    margin-bottom: 10px;
+}
+
+.algorithm-description {
+    font-size: 0.9em;
+    color: #00cc00;
+}
+
+/* 动画效果 */
+@keyframes attack {
+    0% { transform: translateX(0); }
+    25% { transform: translateX(20px); }
+    50% { transform: translateX(-10px); }
+    100% { transform: translateX(0); }
+}
+
+@keyframes damage {
+    0% { opacity: 1; }
+    50% { opacity: 0.5; }
+    100% { opacity: 1; }
+}
+
+@keyframes victory {
+    0% { transform: scale(1); }
+    50% { transform: scale(1.1); }
+    100% { transform: scale(1); }
+}
+
+@keyframes defeat {
+    0% { transform: translateY(0); }
+    25% { transform: translateY(-10px); }
+    50% { transform: translateY(10px); }
+    75% { transform: translateY(-5px); }
+    100% { transform: translateY(0); }
+}
+
+.player.attacking {
+    animation: attack 0.5s ease;
+}
+
+.enemy.damaged {
+    animation: damage 0.5s ease;
+}
+
+.victory {
+    animation: victory 1s ease infinite;
+}
+
+.defeat {
+    animation: defeat 1s ease infinite;
+}
+
+/* 响应式设计 */
+@media (max-width: 768px) {
+    .login-container {
+        padding: 20px;
+        width: 90%;
+    }
+    
+    .login-title {
+        font-size: 2.5em;
+    }
+    
+    .login-input {
+        width: 250px;
+    }
+    
+    .computers-grid {
+        grid-template-columns: repeat(2, 1fr);
+        gap: 20px;
+        width: 90%;
+    }
+    
+    .computer {
+        padding: 20px;
+        min-height: 120px;
+    }
+    
+    .computer-icon {
+        font-size: 2em;
+    }
+    
+    .computer-title {
+        font-size: 1.1em;
+    }
+    
+    .characters-grid {
+        grid-template-columns: 1fr;
+        gap: 15px;
+    }
+    
+    .levels-grid {
+        grid-template-columns: repeat(2, 1fr);
+        gap: 15px;
+    }
+    
+    .controls {
+        flex-wrap: wrap;
+        justify-content: center;
+    }
+    
+    .control-button {
+        min-width: 60px;
+        padding: 10px 15px;
+        font-size: 0.9em;
+    }
+    
+    .health-bars {
+        width: 90%;
+    }
+    
+    .timer {
+        position: static;
+        margin: 20px auto;
+        display: inline-block;
+        transform: none;
+    }
+}
+
+@media (max-width: 480px) {
+    .login-title {
+        font-size: 2em;
+    }
+    
+    .login-input {
+        width: 200px;
+    }
+    
+    .computers-grid {
+        grid-template-columns: 1fr;
+    }
+    
+    .levels-grid {
+        grid-template-columns: 1fr;
+    }
+    
+    .user-info {
+        position: static;
+        margin: 10px auto;
+        max-width: 90%;
+    }
+    
+    .characters-button {
+        position: static;
+        margin: 10px auto;
+        display: block;
+        width: fit-content;
+    }
+}
