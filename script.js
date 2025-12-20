@@ -68,9 +68,9 @@ function loginWithKey(secretKey) {
     console.log('Login with key:', secretKey);
     try {
         // 多层解密
-        let decrypted = atob(secretKey);
+        let decrypted = b64_to_utf8(secretKey);
         decrypted = reverseString(decrypted);
-        decrypted = atob(decrypted);
+        decrypted = b64_to_utf8(decrypted);
         
         const userData = JSON.parse(decrypted);
         
@@ -99,9 +99,9 @@ function saveProgress() {
         
         // 使用与createAccount相同的多层加密
         let secretKey = JSON.stringify(userData);
-        secretKey = btoa(secretKey);
+        secretKey = utf8_to_b64(secretKey);
         secretKey = reverseString(secretKey);
-        secretKey = btoa(secretKey);
+        secretKey = utf8_to_b64(secretKey);
         
         currentUser.secretKey = secretKey;
         localStorage.setItem('currentUser', JSON.stringify(currentUser));
@@ -627,9 +627,9 @@ function main() {
             currentUser = JSON.parse(savedUser);
             try {
                 // 使用与loginWithKey相同的多层解密
-                let decrypted = atob(currentUser.secretKey);
+                let decrypted = b64_to_utf8(currentUser.secretKey);
                 decrypted = reverseString(decrypted);
-                decrypted = atob(decrypted);
+                decrypted = b64_to_utf8(decrypted);
                 
                 const userData = JSON.parse(decrypted);
                 gameState = userData.gameState;
