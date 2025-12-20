@@ -55,9 +55,9 @@ function createAccount(username) {
     
     // 多层加密
     let secretKey = JSON.stringify(userData);
-    secretKey = btoa(secretKey);
+    secretKey = utf8_to_b64(secretKey);
     secretKey = reverseString(secretKey);
-    secretKey = btoa(secretKey);
+    secretKey = utf8_to_b64(secretKey);
     
     localStorage.setItem('currentUser', JSON.stringify({ username, secretKey }));
     currentUser = { username, secretKey };
