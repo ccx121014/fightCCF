@@ -1,16 +1,72 @@
-fightCCF Prototype
+# fightCCF
 
-This repository holds a full prototype skeleton for fightCCF. It includes:
-- A minimal Express backend that serves chapter JSON and the public frontend
-- A public frontend with HTML/CSS/JS stubs for UI, levels, animation, AI, auth, and sync
-- Chapter data as JSON files for quick iteration
+## 备注（不在网站内呈现）
 
-To run:
-  cd server
-  npm install
-  npm run migrate
-  npm start
+画风借鉴B站up主AlanBecker的火柴人vs编程这一集
 
-Open http://localhost:3000 in your browser.
+玩法借鉴火影忍者手游
 
-This commit adds the full prototype: frontend, backend, chapters, level runner, AI, animator, auth and sync.
+防代码窃取（禁用右键和Ctrl）
+
+动作类格斗游戏
+
+动作一定要很流畅
+
+中文
+
+每局120秒
+
+每个个体（比如主页、章节、关卡、角色、登陆……)都是一个独立文件
+
+## 按键说明
+上W
+
+下S
+
+左A
+
+右D
+
+普攻I
+
+一技能J
+
+二技能K
+
+三技能L
+
+## 主页
+
+### 最开始选择登陆或创建账号
+
+登陆：输入秘钥，然后直接名义上的同步（其实是将秘钥内容破解后直接导入）
+
+秘钥：秘钥可以表示玩家曾经的账号名、关卡进度、角色等所有数据（越难破解越好）
+
+创建：输入用户名
+
+### 主页布局
+
+主页index.html
+
+主页中心是6台计算机
+
+分别是CSP-J、CSP-S、NOIP、省选、NOI、CCF主席
+
+最开始第1台已解锁，其他都还上着锁
+
+每通过1章就解锁下一章
+
+1章的关卡数量是比赛的题目数量
+
+1关对应1种算法
+
+解锁的角色都是全局的
+
+初始没有角色
+
+每开启一章（包括第一章）解锁一个
+
+左下角是角色，点进去可以看已解锁角色的技能介绍
+
+左上角是账号名和随时更新的秘钥，秘钥显示“复制”图标
