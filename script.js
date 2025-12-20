@@ -10,25 +10,37 @@ let gameState = {
         'chapter6': [false, false, false, false, false]
     },
     characters: [
-        { id: 'c1', name: '程序员', unlocked: true, image: 'https://p3-flow-imagex-sign.byteimg.com/tos-cn-i-a9rns2rl98/rc/pc/super_tool/a5469c415b534e79a33fb60d65e65fef~tplv-a9rns2rl98-image.image?rcl=202512201240470875B743E140E9E6F54C&rk3s=8e244e95&rrcfp=f06b921b&x-expires=1768797662&x-signature=osqBA%2F5y5fpxtTGjJ6Uau8JmKWo%3D', description: '擅长编程的火柴人', skills: ['快速编码', '调试修复', '算法攻击'] },
+        { id: 'c1', name: '程序员', unlocked: false, image: 'https://p3-flow-imagex-sign.byteimg.com/tos-cn-i-a9rns2rl98/rc/pc/super_tool/a5469c415b534e79a33fb60d65e65fef~tplv-a9rns2rl98-image.image?rcl=202512201240470875B743E140E9E6F54C&rk3s=8e244e95&rrcfp=f06b921b&x-expires=1768797662&x-signature=osqBA%2F5y5fpxtTGjJ6Uau8JmKWo%3D', description: '擅长编程的火柴人', skills: ['快速编码', '调试修复', '算法攻击'] },
         { id: 'c2', name: '黑客', unlocked: false, image: 'https://p9-flow-imagex-sign.byteimg.com/tos-cn-i-a9rns2rl98/rc/pc/super_tool/89e01bdf9a384a358f1a5a4d78b9f155~tplv-a9rns2rl98-image.image?rcl=202512201240470875B743E140E9E6F54C&rk3s=8e244e95&rrcfp=f06b921b&x-expires=1768797673&x-signature=bkbSA8R%2FgiUq8RmmajdVXltux6g%3D', description: '精通网络攻击的火柴人', skills: ['病毒注入', '数据窃取', '后门植入'] },
         { id: 'c3', name: '算法大师', unlocked: false, image: '', description: '掌握高级算法的火柴人', skills: ['动态规划', '图论攻击', '数据结构'] },
         { id: 'c4', name: '系统架构师', unlocked: false, image: '', description: '构建系统的火柴人', skills: ['分布式攻击', '负载均衡', '容错机制'] },
         { id: 'c5', name: 'AI专家', unlocked: false, image: '', description: '人工智能专家火柴人', skills: ['机器学习', '神经网络', '深度学习'] },
         { id: 'c6', name: 'CCF主席', unlocked: false, image: '', description: '终极BOSS', skills: ['政策制定', '标准审核', '权威判决'] }
     ],
-    currentCharacter: 'c1'
+    currentCharacter: null
 };
 
-// 账号系统
+// 账号系统 - 增强版加密
 function createAccount(username) {
+    // 解锁第一章角色
+    const newGameState = JSON.parse(JSON.stringify(gameState));
+    newGameState.characters[0].unlocked = true;
+    newGameState.currentCharacter = 'c1';
+    
     const userData = {
         username: username,
-        gameState: JSON.parse(JSON.stringify(gameState)),
-        createdAt: new Date().toISOString()
+        gameState: newGameState,
+        createdAt: new Date().toISOString(),
+        version: '1.0',
+        hash: generateHash(username + Date.now())
     };
     
-    const secretKey = btoa(JSON.stringify(userData));
+    // 多层加密
+    let secretKey = JSON.stringify(userData);
+    secretKey = btoa(secretKey);
+    secretKey = reverseString(secretKey);
+    secretKey = btoa(secretKey);
+    
     localStorage.setItem('currentUser', JSON.stringify({ username, secretKey }));
     currentUser = { username, secretKey };
     return secretKey;
@@ -36,8 +48,14 @@ function createAccount(username) {
 
 function loginWithKey(secretKey) {
     try {
-        const userData = JSON.parse(atob(secretKey));
-        if (userData.username && userData.gameState) {
+        // 多层解密
+        let decrypted = atob(secretKey);
+        decrypted = reverseString(decrypted);
+        decrypted = atob(decrypted);
+        
+        const userData = JSON.parse(decrypted);
+        
+        if (userData.username && userData.gameState && userData.hash === generateHash(userData.username + new Date(userData.createdAt).getTime())) {
             localStorage.setItem('currentUser', JSON.stringify({ username: userData.username, secretKey }));
             currentUser = { username: userData.username, secretKey };
             gameState = userData.gameState;
@@ -45,8 +63,24 @@ function loginWithKey(secretKey) {
         }
         return false;
     } catch (e) {
+        console.error('Login error:', e);
         return false;
     }
+}
+
+// 辅助加密函数
+function generateHash(str) {
+    let hash = 0;
+    for (let i = 0; i < str.length; i++) {
+        const char = str.charCodeAt(i);
+        hash = ((hash << 5) - hash) + char;
+        hash = hash & hash;
+    }
+    return hash.toString(16);
+}
+
+function reverseString(str) {
+    return str.split('').reverse().join('');
 }
 
 function saveProgress() {
@@ -122,63 +156,109 @@ class FightGame {
     movePlayer(direction) {
         const rect = this.player.getBoundingClientRect();
         const arenaRect = document.querySelector('.game-arena').getBoundingClientRect();
+        const moveSpeed = 30; // 增加移动速度使动作更流畅
+        
+        // 添加移动动画类
+        this.player.classList.add('moving');
         
         switch(direction) {
             case 'up':
-                this.player.style.bottom = Math.min(arenaRect.height - rect.height, parseInt(this.player.style.bottom || 0) + 50) + 'px';
+                this.player.style.bottom = Math.min(arenaRect.height - rect.height, parseInt(this.player.style.bottom || 0) + moveSpeed) + 'px';
                 break;
             case 'down':
-                this.player.style.bottom = Math.max(0, parseInt(this.player.style.bottom || 0) - 50) + 'px';
+                this.player.style.bottom = Math.max(0, parseInt(this.player.style.bottom || 0) - moveSpeed) + 'px';
                 break;
             case 'left':
-                this.player.style.left = Math.max(0, parseInt(this.player.style.left || 100) - 50) + 'px';
+                this.player.style.left = Math.max(0, parseInt(this.player.style.left || 100) - moveSpeed) + 'px';
                 break;
             case 'right':
-                this.player.style.left = Math.min(arenaRect.width - rect.width, parseInt(this.player.style.left || 100) + 50) + 'px';
+                this.player.style.left = Math.min(arenaRect.width - rect.width, parseInt(this.player.style.left || 100) + moveSpeed) + 'px';
                 break;
         }
+        
+        // 移除移动动画类
+        setTimeout(() => {
+            this.player.classList.remove('moving');
+        }, 100);
     }
     
     attack(type) {
+        // 防止连续攻击
+        if (this.isAttacking) return;
+        this.isAttacking = true;
+        
         this.player.classList.add('attacking');
         
-        setTimeout(() => {
-            this.player.classList.remove('attacking');
+        // 创建攻击特效
+        const attackEffect = document.createElement('div');
+        attackEffect.className = 'attack-effect';
+        attackEffect.style.position = 'absolute';
+        attackEffect.style.width = '50px';
+        attackEffect.style.height = '20px';
+        attackEffect.style.backgroundColor = type.startsWith('skill') ? '#00ff00' : '#ffffff';
+        attackEffect.style.borderRadius = '10px';
+        attackEffect.style.zIndex = '10';
+        attackEffect.style.opacity = '0.8';
+        
+        const playerRect = this.player.getBoundingClientRect();
+        attackEffect.style.left = (playerRect.right - 25) + 'px';
+        attackEffect.style.top = (playerRect.top + playerRect.height / 2 - 10) + 'px';
+        
+        document.querySelector('.game-arena').appendChild(attackEffect);
+        
+        // 攻击动画
+        let pos = 0;
+        const attackInterval = setInterval(() => {
+            pos += 5;
+            attackEffect.style.left = (playerRect.right - 25 + pos) + 'px';
             
-            const playerRect = this.player.getBoundingClientRect();
             const enemyRect = this.enemy.getBoundingClientRect();
-            
-            if (playerRect.right > enemyRect.left && playerRect.left < enemyRect.right &&
-                playerRect.top < enemyRect.bottom && playerRect.bottom > enemyRect.top) {
+            if (attackEffect.getBoundingClientRect().right > enemyRect.left && 
+                attackEffect.getBoundingClientRect().left < enemyRect.right &&
+                attackEffect.getBoundingClientRect().top < enemyRect.bottom && 
+                attackEffect.getBoundingClientRect().bottom > enemyRect.top) {
                 
                 let damage = 10;
+                let color = '#ffffff';
+                
                 switch(type) {
                     case 'skill1':
                         damage = 20;
-                        this.player.classList.add('skill');
+                        color = '#00ff00';
                         break;
                     case 'skill2':
                         damage = 30;
-                        this.player.classList.add('skill');
+                        color = '#0080ff';
                         break;
                     case 'skill3':
                         damage = 40;
-                        this.player.classList.add('skill');
+                        color = '#ff00ff';
                         break;
                 }
+                
+                attackEffect.style.backgroundColor = color;
                 
                 this.enemyHealthValue = Math.max(0, this.enemyHealthValue - damage);
                 this.enemyHealth.style.width = this.enemyHealthValue + '%';
                 
                 this.enemy.classList.add('damaged');
-                setTimeout(() => this.enemy.classList.remove('damaged'), 500);
-                setTimeout(() => this.player.classList.remove('skill'), 500);
                 
                 if (this.enemyHealthValue <= 0) {
                     this.endGame('win');
                 }
             }
-        }, 500);
+            
+            if (pos > 100) {
+                clearInterval(attackInterval);
+                document.querySelector('.game-arena').removeChild(attackEffect);
+            }
+        }, 16);
+        
+        setTimeout(() => {
+            this.player.classList.remove('attacking');
+            this.enemy.classList.remove('damaged');
+            this.isAttacking = false;
+        }, 300);
     }
     
     enemyAttack() {
