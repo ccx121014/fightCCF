@@ -88,9 +88,17 @@ function saveProgress() {
         const userData = {
             username: currentUser.username,
             gameState: gameState,
-            createdAt: new Date().toISOString()
+            createdAt: new Date().toISOString(),
+            version: '1.0',
+            hash: generateHash(currentUser.username + Date.now())
         };
-        const secretKey = btoa(JSON.stringify(userData));
+        
+        // 使用与createAccount相同的多层加密
+        let secretKey = JSON.stringify(userData);
+        secretKey = btoa(secretKey);
+        secretKey = reverseString(secretKey);
+        secretKey = btoa(secretKey);
+        
         currentUser.secretKey = secretKey;
         localStorage.setItem('currentUser', JSON.stringify(currentUser));
     }
@@ -376,34 +384,10 @@ class FightGame {
     }
 }
 
-// 页面加载完成后初始化
-document.addEventListener('DOMContentLoaded', () => {
-    // 检查当前用户
-    const savedUser = localStorage.getItem('currentUser');
-    if (savedUser) {
-        currentUser = JSON.parse(savedUser);
-        try {
-            const userData = JSON.parse(atob(currentUser.secretKey));
-            gameState = userData.gameState;
-        } catch (e) {
-            console.error('Invalid secret key');
-        }
-    }
-    
-    // 根据页面类型初始化
-    const currentPage = window.location.pathname.split('/').pop();
-    
-    if (currentPage === 'login.html') {
-        initLoginPage();
-    } else if (currentPage === 'index.html') {
-        initMainPage();
-    } else if (currentPage === 'characters.html') {
-        initCharactersPage();
-    } else if (currentPage.startsWith('chapter')) {
-        initChapterPage();
-    } else if (currentPage.startsWith('level')) {
-        initLevelPage();
-    }
+// 禁用右键菜单和Ctrl组合键
+document.addEventListener('contextmenu', e => e.preventDefault());
+document.addEventListener('keydown', e => {
+    if (e.ctrlKey) e.preventDefault();
 });
 
 // 登录页面初始化
@@ -500,15 +484,18 @@ function initCharactersPage() {
             ${character.unlocked ? '<button class="select-button">选择</button>' : '<div class="locked-text">未解锁</div>'}
         `;
         
-        if (character.unlocked) {
-            card.querySelector('.select-button').addEventListener('click', () => {
-                gameState.currentCharacter = character.id;
-                saveProgress();
-                alert(`已选择角色：${character.name}`);
-            });
-        }
-        
         charactersGrid.appendChild(card);
+        
+        if (character.unlocked) {
+            const selectButton = card.querySelector('.select-button');
+            if (selectButton) {
+                selectButton.addEventListener('click', () => {
+                    gameState.currentCharacter = character.id;
+                    saveProgress();
+                    alert(`已选择角色：${character.name}`);
+                });
+            }
+        }
     });
     
     // 返回按钮
@@ -602,8 +589,43 @@ function getAlgorithmName(chapterNumber, levelIndex) {
     return algorithms[chapterNumber][levelIndex] || '未知算法';
 }
 
-// 禁用右键菜单和Ctrl组合键
-document.addEventListener('contextmenu', e => e.preventDefault());
-document.addEventListener('keydown', e => {
-    if (e.ctrlKey) e.preventDefault();
+// 页面加载完成后初始化
+document.addEventListener('DOMContentLoaded', () => {
+    // 检查当前用户
+    const savedUser = localStorage.getItem('currentUser');
+    if (savedUser) {
+        currentUser = JSON.parse(savedUser);
+        try {
+            // 使用与loginWithKey相同的多层解密
+            let decrypted = atob(currentUser.secretKey);
+            decrypted = reverseString(decrypted);
+            decrypted = atob(decrypted);
+            
+            const userData = JSON.parse(decrypted);
+            gameState = userData.gameState;
+        } catch (e) {
+            console.error('Invalid secret key:', e);
+            // 如果解密失败，清除本地存储并跳转到登录页
+            localStorage.removeItem('currentUser');
+            currentUser = null;
+            if (window.location.pathname.split('/').pop() !== 'login.html') {
+                window.location.href = 'login.html';
+            }
+        }
+    }
+    
+    // 根据页面类型初始化
+    const currentPage = window.location.pathname.split('/').pop();
+    
+    if (currentPage === 'login.html') {
+        initLoginPage();
+    } else if (currentPage === 'index.html') {
+        initMainPage();
+    } else if (currentPage === 'characters.html') {
+        initCharactersPage();
+    } else if (currentPage.startsWith('chapter')) {
+        initChapterPage();
+    } else if (currentPage.startsWith('level')) {
+        initLevelPage();
+    }
 });
